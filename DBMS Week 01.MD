@@ -191,7 +191,6 @@ Database Migration refers to changing the Logical Design Schema and/or migrating
       1. Storage Access
       2. File Organization
       3. Indexing and Hashing
-
 ### Query Processing
 1. Parsing and translation
 2. Optimization
@@ -203,7 +202,6 @@ Database Migration refers to changing the Logical Design Schema and/or migrating
 2. The relative algebra expression is optimized and an execution plan is made.
 3. `Evaluation Engine` basically records execution plan vs execution timing for the `Statistics about query`
    1. `Optimizer` uses `Statistics about query` engine to chose Execution Plan Strategy
-
 ### Transaction Management
 1. Transaction is a collection of operations, where success is achieved if all the operations succeed.
    1. If even 1 operation fails, the transaction fails and a rollback is done. The state of the record is NOT changed
@@ -222,15 +220,13 @@ Database Migration refers to changing the Logical Design Schema and/or migrating
          2. So the R-DB system somehow manages to achieve the above. This is Concurrency Control 
 ### Database Systems Internal
 ![Exploded diagram of a regular RDBMS](./imgs/07-dbms-system-diagram.png)
-
-## Graph Databases
+### Graph Databases
 1. Designed to model and store relationships directly as first-class citizens, allowing for fast and efficient querying of complex relationships. Operations like traversing relationships are optimized for performance.
 2. They are Schema-less or have a flexible schema, allowing you to easily add new types of relationships and nodes without disrupting existing data or requiring a significant schema redesign
 3. Perform complex queries involving multiple levels of relationships (e.g., finding friends of friends) efficiently. Query performance tends to be consistent and predictable, even with deeply nested relationships. Good luck with RDBMS
 4. Handle complex and highly interconnected data structures with ease. 
 5. Can scale effectively to handle large volumes of interconnected data and relationships, maintaining performance even as the data grows.
-
-## XML - Extensible Markup Language
+### XML - Extensible Markup Language
 
 1. Defined by WWW (W3C)
 2. Hierarchical in nature
