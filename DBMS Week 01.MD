@@ -2,6 +2,8 @@
 
 *Prof. Partha Pratham Das, IIT KGP*
 
+*Notes by Adarsh (23f2003570)*  
+
 ## Module 1 (Duration 00:25:39)
 [Link](https://www.youtube.com/watch?v=OMHbGm9SQuE&list=PLZ2ps__7DhBYc4jkUk_yQAjYEVFzVzhdU&index=1)
 

@@ -2,6 +2,8 @@
 
 *Prof. Partha Pratham Das, IIT KGP*
 
+*Notes by Adarsh (23f2003570)*  
+
 ## Module 1 (Duration 00:31:44)
 
 ### Attribute type
