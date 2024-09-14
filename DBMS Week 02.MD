@@ -125,51 +125,6 @@ The **Turing Steps** are specific actions that define how a Turing machine opera
 
 ## [Introduction to SQL/1 (30:26)](https://www.youtube.com/watch?v=Wv6vM5rGCw0&list=PLZ2ps__7DhBYc4jkUk_yQAjYEVFzVzhdU&index=7&pp=iAQB)
 
-### My Roadmap
-
-#### **Learn SQL Fundamentals**
-
-- **Basic Syntax:** Understand the basic structure of SQL commands and statements.
-- **Data Definition Language (DDL):**
-  - **`CREATE`**: Create databases, tables, and other database objects.
-  - **`ALTER`**: Modify existing database objects.
-  - **`DROP`**: Delete databases, tables, or other objects.
-
-- **Data Manipulation Language (DML):**
-  - **`SELECT`**: Retrieve data from tables.
-  - **`INSERT`**: Add new rows to a table.
-  - **`UPDATE`**: Modify existing rows.
-  - **`DELETE`**: Remove rows from a table.
-
-#### **Learn SQL Query Techniques**
-
-- **Filtering Data:** Use `WHERE` clauses to filter records.
-- **Sorting Data:** Apply `ORDER BY` to sort results.
-- **Aggregate Functions:** Use functions like `COUNT()`, `SUM()`, `AVG()`, `MAX()`, and `MIN()` to perform calculations.
-- **Grouping Data:** Use `GROUP BY` to group records and perform aggregate calculations.
-
-#### **Understand Joins and Relationships**
-
-- **Inner Join:** Combine rows from two or more tables based on a related column.
-- **Left Join (or Left Outer Join):** Retrieve all rows from the left table and matched rows from the right table.
-- **Right Join (or Right Outer Join):** Retrieve all rows from the right table and matched rows from the left table.
-- **Full Join (or Full Outer Join):** Retrieve all rows when there is a match in either left or right table.
-- **Self Join:** Join a table with itself.
-
-#### **Advanced SQL Concepts**
-
-- **Subqueries:** Learn to use nested queries to retrieve data.
-- **Indexes:** Understand how to create and use indexes to improve query performance.
-- **Views:** Create and manage views to simplify complex queries and improve security.
-- **Stored Procedures and Functions:** Write and use stored procedures and functions for reusable SQL code.
-
-#### **Explore SQL Optimization and Best Practices**
-
-- **Query Optimization:** Learn techniques for writing efficient queries and optimizing performance.
-- **Normalization:** Understand database normalization to design efficient schemas.
-- **Backup and Recovery:** Familiarize yourself with SQL database backup and recovery procedures.
-
-
 ### Domain Types in SQL
 
 #### 1. **Numeric Data Types**
@@ -839,3 +794,245 @@ where (instructor.id, dept_name) = (teacher.id, "biology")
 ```sql
 select name from instructor where dep_name in ('CS', 'Biology')
 ```
+
+
+
+## [Introduction to Relational Models/3 (00:31:58)](https://youtu.be/AaKMO4-g_zw?list=PLZ2ps__7DhBYc4jkUk_yQAjYEVFzVzhdU)
+
+### SQL Aggregate Functions
+
+SQL aggregate functions perform calculations on a set of values and return a single result. 
+- All Aggregation functions (except `count`) ignore NULL values
+- If all values are null, Count and all aggregations yields null
+- 
+
+1. **COUNT()**
+   - **Description**: Counts the number of rows in a set.
+   - **Example**:
+     ```sql
+     SELECT COUNT(*) FROM employees;
+     ```
+     Counts the total number of rows in the `employees` table.
+
+2. **SUM()**
+   - **Description**: Calculates the total sum of a numeric column.
+   - **Example**:
+     ```sql
+     SELECT SUM(salary) FROM employees;
+     ```
+     Calculates the total sum of all values in the `salary` column.
+
+3. **AVG()**
+   - **Description**: Computes the average value of a numeric column.
+   - **Example**:
+     ```sql
+     SELECT AVG(salary) FROM employees;
+     ```
+     Finds the average salary of all employees.
+
+4. **MIN()**
+   - **Description**: Returns the minimum value in a set.
+   - **Example**:
+     ```sql
+     SELECT MIN(salary) FROM employees;
+     ```
+     Finds the lowest salary in the `employees` table.
+
+5. **MAX()**
+   - **Description**: Returns the maximum value in a set.
+   - **Example**:
+     ```sql
+     SELECT MAX(salary) FROM employees;
+     ```
+     Finds the highest salary in the `employees` table.
+
+6. **GROUP_CONCAT()** (in MySQL) or **STRING_AGG()** (in SQL Server and PostgreSQL)
+   - **Description**: Concatenates values from multiple rows into a single string.
+   - **Example** (MySQL):
+     ```sql
+     SELECT GROUP_CONCAT(employee_name) FROM employees;
+     ```
+     Concatenates all employee names into a single comma-separated string.
+
+   - **Example** (PostgreSQL):
+     ```sql
+     SELECT STRING_AGG(employee_name, ', ') FROM employees;
+     ```
+     Similar to `GROUP_CONCAT()`, but for PostgreSQL.
+
+These functions are often used with the `GROUP BY` clause to perform calculations on subsets of data. For instance:
+
+```sql
+SELECT department, AVG(salary)
+FROM employees
+GROUP BY department;
+```
+
+This query calculates the average salary for each department.
+
+### Notes on Set operations
+1. Treat Relations (Tables) as sets
+   1. Two Relations can be involved in a binary set operation (Union, Intersection, Difference) provided they are identical in structure
+2. **Each operation requires that the queries have the same number of columns and compatible data types.**
+3. if a tuple occurs `m` times in `r` and `n` times in `s`
+   1. UNION_ALL(`s`) - `m + n` times
+   2. INTERSECT_ALL(`s`) - `min(m, n)` times
+   3. EXCEPT_ALL(`s`) - `max(0, m - n)` times
+      1. Zero turns up if cardinality match of `r` is greater than `s`... draw it on paper and check
+   4. This is an extremely important problem
+
+### Set Union/Intersection/Difference
+```sql
+(select course_id from section where sem = 'Fall' and year=2009)
+
+union/intersect/except
+
+(select course_id from section where sem = 'Sprint' and year=2010)
+```
+1. Union is A or B
+2. Intersection A and B
+3. Difference A \ B (A but not B)
+
+### Set Value Examples
+
+1. **UNION**
+   - **Description**: Combines results from multiple queries, removing duplicates.
+   - **Example**:
+     ```sql
+     SELECT column_name FROM table1
+     UNION
+     SELECT column_name FROM table2;
+     ```
+     If `table1` has values (1, 2) and `table2` has values (2, 3), the result is (1, 2, 3).
+
+2. **UNION/INTERSECT/EXCEPT ALL**
+   - **Description**: Combines results from multiple queries, **including duplicates**.
+   - **Example**:
+     ```sql
+     SELECT column_name FROM table1
+     UNION ALL
+     SELECT column_name FROM table2;
+     ```
+     If `table1` has values (1, 2) and `table2` has values (2, 3), the result is (1, 2, 2, 3).
+
+3. **INTERSECT**
+   - **Description**: Returns unique rows that are common to all queries.
+   - **Example**:
+     ```sql
+     SELECT column_name FROM table1
+     INTERSECT
+     SELECT column_name FROM table2;
+     ```
+     If `table1` has values (1, 2) and `table2` has values (2, 3), the result is (2).
+
+4. **EXCEPT** (or **MINUS** in some databases)
+   - **Description**: Returns unique rows from the first query that are not in the second query.
+   - **Example**:
+     ```sql
+     SELECT column_name FROM table1
+     EXCEPT
+     SELECT column_name FROM table2;
+     ```
+     If `table1` has values (1, 2) and `table2` has values (2, 3), the result is (1).
+
+
+### 3 Value Logic
+
+- This is a troublesome topic, be careful. Use the term **Unknown** and logic get's really easy for us humans!
+- result of **WHERE** clause predicate is treated as false if it evaluates to *Unknown*
+
+Three-Valued Logic (3VL) in databases includes three states for logical values: **True**, **False**, and **Unknown** (represented by `NULL`). This logic handles cases where data may be missing or indeterminate.
+
+#### Truth Table:
+
+1. Comparison with two *Unknown's* gives *Unknown*
+1. OR
+   1. *Unknown* or True = True (like boolean algebra)
+   2. *Unknown* or False = *Unknown*
+   3. *Unknown* or *Unknown* = *Unknown*
+2. AND
+   1. True and *Unknown* = *Unknown*
+   2. False and *Unknown* = False
+   3. *Unknown* and *Unknown* = *Unknown*
+3. NOT
+   1. not *Unknown* = *Unknown*
+
+
+#### Examples:
+
+1. **Comparison with NULL**:
+   - **Query**:
+     ```sql
+     SELECT * FROM employees WHERE hire_date = NULL;
+     ```
+   - **Result**: This will not return any rows because comparing `NULL` with any value (including `NULL`) results in `UNKNOWN`. Use `IS NULL` for checks:
+     ```sql
+     SELECT * FROM employees WHERE hire_date IS NULL;
+     ```
+
+2. **Logical Operations**:
+   - **Query**:
+     ```sql
+     SELECT * FROM employees WHERE salary > 50000 AND commission IS NULL;
+     ```
+   - **Explanation**: If `salary > 50000` is true but `commission IS NULL` evaluates to `UNKNOWN`, the result for the `AND` operation is `UNKNOWN`. Therefore, the query filters rows where the condition can be true.
+
+3. **Aggregate Functions**:
+   - **Query**:
+     ```sql
+     SELECT AVG(salary) FROM employees;
+     ```
+   - **Explanation**: `AVG` ignores `NULL` values but computes the average of non-NULL salaries.
+
+3VL helps manage incomplete data and ensures that queries account for `NULL` values accurately.
+
+
+### Having Clause
+
+The `HAVING` clause in SQL is used to filter results after aggregation has been performed, complementing the `GROUP BY` clause. While `WHERE` filters rows before aggregation, `HAVING` filters groups or aggregates after the `GROUP BY` operation.
+
+#### Syntax:
+```sql
+SELECT column_name, aggregate_function(column_name)
+FROM table_name
+GROUP BY column_name
+HAVING aggregate_function(column_name) condition;
+```
+
+#### Examples:
+
+1. **Basic Example**:
+   - **Query**: Find departments with an average salary greater than 50,000.
+     ```sql
+     SELECT department, AVG(salary) AS avg_salary
+     FROM employees
+     GROUP BY department
+     HAVING AVG(salary) > 50000;
+     ```
+   - **Explanation**: Groups employees by department, calculates the average salary for each department, and then filters to include only those departments where the average salary is greater than 50,000.
+
+2. **Using Multiple Conditions**:
+   - **Query**: Find departments with more than 10 employees and where the maximum salary is over 100,000.
+     ```sql
+     SELECT department, COUNT(*) AS num_employees, MAX(salary) AS max_salary
+     FROM employees
+     GROUP BY department
+     HAVING COUNT(*) > 10 AND MAX(salary) > 100000;
+     ```
+   - **Explanation**: Groups employees by department, counts the number of employees and finds the maximum salary for each department, then filters to include departments with more than 10 employees and a maximum salary exceeding 100,000.
+
+3. **With a Subquery**:
+   - **Query**: Find products where the total quantity sold is greater than the average quantity sold across all products.
+     ```sql
+     SELECT product_id, SUM(quantity) AS total_quantity
+     FROM sales
+     GROUP BY product_id
+     HAVING SUM(quantity) > (
+         SELECT AVG(total_quantity) FROM (
+             SELECT SUM(quantity) AS total_quantity
+             FROM sales
+             GROUP BY product_id
+         ) subquery
+     );
+     ```
+   - **Explanation**: Aggregates quantity sold by product, then filters to include only those products where the total quantity sold is greater than the average total quantity sold, as calculated by the subquery.
