@@ -4,8 +4,7 @@
 
 *Notes by Adarsh (23f2003570)*  
 
-## Module 1 (Duration 00:25:39)
-[Link](https://www.youtube.com/watch?v=OMHbGm9SQuE&list=PLZ2ps__7DhBYc4jkUk_yQAjYEVFzVzhdU&index=1)
+## [Course Overview (00:25:39)](https://www.youtube.com/watch?v=OMHbGm9SQuE&list=PLZ2ps__7DhBYc4jkUk_yQAjYEVFzVzhdU&index=1)
 
 1. DBMS contains information of an enterprise
    1. It can be RDBMS, or Document DB 
@@ -57,7 +56,7 @@
       8.  Object Oriented Analysis and Design
 
 ![Week Wise learning, 5 Modules per week](./imgs/01-week-outline.png)
-## Module 2 (Duration 00:28.57)
+## [Why DBMS/1 (00:28.57)](https://www.youtube.com/watch?v=BS0-7KJdopY&list=PLZ2ps__7DhBYc4jkUk_yQAjYEVFzVzhdU&index=2&pp=iAQB)
 
 Electronics Data Management Parameters
 1. Durability
@@ -70,13 +69,13 @@ Electronics Data Management Parameters
 8. Cost
 
 ![DB Map](./imgs/02-db-map.png)
-## Module 3 (Duration 00:29.02)
+## [Why DBMS/2 (00:29.02)](https://www.youtube.com/watch?v=9SrBrnIoCjc&list=PLZ2ps__7DhBYc4jkUk_yQAjYEVFzVzhdU&index=3&pp=iAQB)
 
 [Github: CSV based Banking system](https://github.com/bhaskariitm/transition-from-files-to-db/blob/main/app.py)
 
 ### File Vs DBMS
 ![File vs DBMS](./imgs/03-File-vs-dbms.png)
-## Module 4 (Duration 00:24.27)
+## [Introduction to DBMS/1 (00:24.27)](https://www.youtube.com/watch?v=s1Jb-NJNpT4&list=PLZ2ps__7DhBYc4jkUk_yQAjYEVFzVzhdU&index=4&pp=iAQB)
 ### Levels of abstraction
 1. Physical Level defines how the record is stored on Hard disk. Basically Data Structures at the core
 2. Logical Level defines how data is stored in DB. Defines relationship, fields
@@ -146,7 +145,7 @@ Electronics Data Management Parameters
 ### Good design of DB relations and bad designs
 1. Basically Prof. Das is talking of not duplicating data by separating entities and keeping a relation between them
 2. Normalizing a DB (Normalization Theory)
-## Module 5 (Duration 00:29.12)
+## [Introduction to DBMS/2 (00:29.12)](https://www.youtube.com/watch?v=MDQxqYVXiVU&list=PLZ2ps__7DhBYc4jkUk_yQAjYEVFzVzhdU&index=5&pp=iAQB)
 ### Database Design
 
 Database design has 2 components

@@ -4,7 +4,7 @@
 
 *Notes by Adarsh (23f2003570)*  
 
-## Module 1 (Duration 00:31:44)
+## [Introduction to Relational Models/1 (00:31:44)](https://www.youtube.com/watch?v=B3cCQagcoao&list=PLZ2ps__7DhBYc4jkUk_yQAjYEVFzVzhdU&index=6&pp=iAQB)
 
 ### Attribute type
     1. Attributes are fields or columns of a table
@@ -29,21 +29,22 @@
    A relation is a set of n-tuples $(a_1, a_2, ..., a_n)$ where $a_i \in  D_i$
 
 Current values (relation instance) of a relation are specified by a table
-
 ### Order of relations
 1. Order of tuples/rows are not important
 2. No 2 tuples or rows may be identical. They have to be distinct
 3. Relation is a set and a set has no order
-
 ### Keys
-
 Keys cannot be nullable !!!
 
 **Super Key** is any combination of columns that ensures uniqueness for rows in the table.
 
 **Surrogate Key** is an artificial or synthetic key used to uniquely identify rows in a table. It is created specifically for the purpose of serving as a unique identifier, rather than being derived from the data itself. Also called **Synthetic Key**
 
-**Surrogate Key vs. Natural Key:**
+**Simple Key** also called primary key. Uses one attribute or field.
+
+**Composite Key** Do not confuse with multiple foreign keys. Uses more than one fields
+
+#### Surrogate Key vs. Natural Key
 
 1. **Natural Key:** A key that is derived from the data itself, such as a Social Security Number or email address, which inherently has meaning and is used to uniquely identify records.
 2. **Surrogate Key:** A key created for the sole purpose of uniquely identifying records, with no inherent meaning or relationship to the actual data.
@@ -67,26 +68,774 @@ Foreign key is a column or a set of columns in one table that creates a link bet
 - Reference to Primary Key: The foreign key in the child table refers to the primary key of the parent table. This means that the values in the foreign key column(s) must match values in the primary key column(s) of the parent table or be null.
 - Data Integrity: Foreign keys are used to enforce referential integrity, ensuring that the relationship between tables remains consistent. For example, if a row in the child table has a foreign key value, that value must correspond to an existing primary key value in the parent table, if the foreign key is not null.
 - Relationship Types: Foreign keys help define the type of relationship between tables:
-One-to-One: Each row in the child table relates to one and only one row in the parent table.
-One-to-Many: Each row in the parent table can relate to multiple rows in the child table.
-Many-to-Many: Typically, this is implemented using a junction table (or associative table) with two foreign keys, each pointing to the primary keys of the related tables.
+  - One-to-One: Each row in the child table relates to one and only one row in the parent table.
+  - One-to-Many: Each row in the parent table can relate to multiple rows in the child table.
+  - Many-to-Many: Typically, this is implemented using a junction table (or associative table) with two foreign keys, each pointing to the primary keys of the related tables.
 - Cascading Actions: Foreign keys can also specify cascading actions for updates and deletions. For instance, if a row in the parent table is deleted or updated, the foreign key constraints can automatically handle these changes in the child table based on defined rules (e.g., CASCADE, SET NULL, RESTRICT, or NO ACTION).
 
+![Typical DB Schema Diagram](./imgs/08-typical-schema-diagram.png)
 
 ### Relational Programming Languages
-
 #### Procedural vs Relational Programming
 
 Procedural programming is based on the concept of procedure calls. Procedures, also known as functions or routines, are a sequence of instructions that operate on data. The main idea is to structure the program as a set of procedures that manipulate data.
 
-
 Relational programming is based on the principles of relational databases and logic. It involves working with data in the form of relations (tables) and using logical queries to manipulate and retrieve data.
 
 
-## Procedural vs Declarative
+#### Procedural vs Declarative
 
 Prof. Das says finding a square root using code is procedural
 
 but finding a x such that $X^2 = Y$ is declarative
 
 WIP Let's explore this later, This is the end of Module 6/Module 1/week 2
+
+
+#### Turing Machine steps
+
+The **Turing Steps** are specific actions that define how a Turing machine operates during its computation. Alan Turing's theoretical model of computation involves a machine that manipulates symbols on an infinite tape based on a set of rules. Here’s a brief outline of the key steps in the operation of a Turing machine:
+
+##### 1. **Initial State**
+
+- **Description:** The Turing machine starts in a designated initial state. This is the state from which the computation begins, and it may be specifically defined in the problem or computation setup.
+
+##### 2. **Read Symbol**
+
+- **Description:** The machine reads the symbol currently under the tape head. The symbol is used to determine the next action according to the machine’s transition function.
+
+##### 3. **Transition Function**
+
+- **Description:** Based on the current state and the symbol read from the tape, the transition function specifies the machine’s next actions:
+  - **Write Symbol:** The machine writes a new symbol on the tape in place of the old symbol.
+  - **Move Head:** The machine moves the tape head either to the left or right.
+  - **Change State:** The machine transitions to a new state based on the current state and the symbol it has read.
+
+##### 4. **Update Tape**
+
+- **Description:** After performing the write operation and moving the head, the tape is updated. This can involve writing a new symbol and adjusting the position of the head.
+
+##### 5. **Repeat**
+
+- **Description:** The machine continues executing the above steps, moving between states and updating the tape, until it reaches a halting condition. This loop continues as long as the machine’s transition rules dictate.
+
+##### 6. **Halting Condition**
+
+- **Description:** The computation stops when the Turing machine reaches a halting state or if no applicable transition function is defined for the current state and symbol. This marks the end of the computation and the final result is represented on the tape.
+
+## [Introduction to SQL/1 (30:26)](https://www.youtube.com/watch?v=Wv6vM5rGCw0&list=PLZ2ps__7DhBYc4jkUk_yQAjYEVFzVzhdU&index=7&pp=iAQB)
+
+### My Roadmap
+
+#### **Learn SQL Fundamentals**
+
+- **Basic Syntax:** Understand the basic structure of SQL commands and statements.
+- **Data Definition Language (DDL):**
+  - **`CREATE`**: Create databases, tables, and other database objects.
+  - **`ALTER`**: Modify existing database objects.
+  - **`DROP`**: Delete databases, tables, or other objects.
+
+- **Data Manipulation Language (DML):**
+  - **`SELECT`**: Retrieve data from tables.
+  - **`INSERT`**: Add new rows to a table.
+  - **`UPDATE`**: Modify existing rows.
+  - **`DELETE`**: Remove rows from a table.
+
+#### **Learn SQL Query Techniques**
+
+- **Filtering Data:** Use `WHERE` clauses to filter records.
+- **Sorting Data:** Apply `ORDER BY` to sort results.
+- **Aggregate Functions:** Use functions like `COUNT()`, `SUM()`, `AVG()`, `MAX()`, and `MIN()` to perform calculations.
+- **Grouping Data:** Use `GROUP BY` to group records and perform aggregate calculations.
+
+#### **Understand Joins and Relationships**
+
+- **Inner Join:** Combine rows from two or more tables based on a related column.
+- **Left Join (or Left Outer Join):** Retrieve all rows from the left table and matched rows from the right table.
+- **Right Join (or Right Outer Join):** Retrieve all rows from the right table and matched rows from the left table.
+- **Full Join (or Full Outer Join):** Retrieve all rows when there is a match in either left or right table.
+- **Self Join:** Join a table with itself.
+
+#### **Advanced SQL Concepts**
+
+- **Subqueries:** Learn to use nested queries to retrieve data.
+- **Indexes:** Understand how to create and use indexes to improve query performance.
+- **Views:** Create and manage views to simplify complex queries and improve security.
+- **Stored Procedures and Functions:** Write and use stored procedures and functions for reusable SQL code.
+
+#### **Explore SQL Optimization and Best Practices**
+
+- **Query Optimization:** Learn techniques for writing efficient queries and optimizing performance.
+- **Normalization:** Understand database normalization to design efficient schemas.
+- **Backup and Recovery:** Familiarize yourself with SQL database backup and recovery procedures.
+
+
+### Domain Types in SQL
+
+#### 1. **Numeric Data Types**
+
+- **`INT` (INTEGER):** Stores whole numbers. Variants include `SMALLINT`, `MEDIUMINT`, `BIGINT`, which specify different ranges of integer values.
+  ```sql
+  CREATE TABLE employees (
+      id INT PRIMARY KEY,
+      age SMALLINT
+  );
+  ```
+
+- **`FLOAT`, `REAL`, `DOUBLE`:** Used for storing floating-point numbers (decimal values). `FLOAT` and `DOUBLE` offer different levels of precision.
+  ```sql
+  CREATE TABLE products (
+      price FLOAT,
+      discount DOUBLE
+  );
+  ```
+
+- **`DECIMAL`, `NUMERIC`:** Store exact numeric values with a fixed number of decimal places. Useful for financial calculations where precision is critical.
+  ```sql
+  CREATE TABLE transactions (
+      amount DECIMAL(10, 2) -- 10 digits total, 2 after the decimal point
+  );
+  ```
+
+#### 2. **Character and String Data Types**
+
+- **`CHAR(n)`:** Stores fixed-length strings. If the string is shorter than the specified length, it is padded with spaces.
+  ```sql
+  CREATE TABLE users (
+      username CHAR(10)
+  );
+  ```
+
+- **`VARCHAR(n)`:** Stores variable-length strings. `n` specifies the maximum length. Only the actual length of the string is stored.
+  ```sql
+  CREATE TABLE comments (
+      text VARCHAR(255)
+  );
+  ```
+
+- **`TEXT`:** Stores large amounts of text. Suitable for storing lengthy textual content.
+  ```sql
+  CREATE TABLE articles (
+      content TEXT
+  );
+  ```
+
+#### 3. **Date and Time Data Types**
+
+- **`DATE`:** Stores date values (year, month, day).
+  ```sql
+  CREATE TABLE events (
+      event_date DATE
+  );
+  ```
+
+- **`TIME`:** Stores time values (hour, minute, second).
+  ```sql
+  CREATE TABLE schedules (
+      start_time TIME
+  );
+  ```
+
+- **`DATETIME`, `TIMESTAMP`:** Store both date and time values. `TIMESTAMP` often includes time zone information.
+  ```sql
+  CREATE TABLE logs (
+      created_at DATETIME
+  );
+  ```
+
+#### 4. **Boolean Data Type**
+
+- **`BOOLEAN`:** Stores boolean values (`TRUE` or `FALSE`). Some SQL databases might use `TINYINT(1)` or `BIT` to represent boolean values.
+  ```sql
+  CREATE TABLE settings (
+      is_active BOOLEAN
+  );
+  ```
+
+#### 5. **Binary Data Types**
+
+- **`BLOB` (Binary Large Object):** Stores binary data such as images, files, or multimedia content.
+  ```sql
+  CREATE TABLE files (
+      file_data BLOB
+  );
+  ```
+
+#### 6. **Special Data Types**
+
+- **`ENUM`:** Stores a predefined list of values. Useful for columns that should only take one of a few specific values.
+  ```sql
+  CREATE TABLE orders (
+      status ENUM('pending', 'shipped', 'delivered')
+  );
+  ```
+
+- **`SET`:** Stores a set of predefined values, where multiple values can be selected from the list.
+  ```sql
+  CREATE TABLE user_preferences (
+      preferences SET('email', 'sms', 'push')
+  );
+  ```
+
+### CREATE TABLE
+
+```sql
+CREATE TABLE table_name (
+    column1 data_type [constraints],
+    column2 data_type [constraints],
+    ...
+    table_constraints
+);
+```
+
+#### Components
+
+1. **`table_name`:** 
+   - The name of the new table being created.
+
+2. **`column_name`:** 
+   - The name of each column in the table. Each column name must be unique within the table.
+
+3. **`data_type`:**
+   - The data type of the column, which determines the kind of data it can store (e.g., `INT`, `VARCHAR`, `DATE`).
+
+4. **`constraints`:**
+   - Optional rules applied to the column. Common constraints include:
+     - **`PRIMARY KEY`:** Uniquely identifies each row in the table. A primary key column cannot contain `NULL` values and must have unique values.
+     - **`NOT NULL`:** Ensures that the column cannot have `NULL` values.
+     - **`UNIQUE`:** Guarantees that all values in the column are distinct.
+     - **`DEFAULT`:** Provides a default value for the column if none is specified.
+     - **`CHECK`:** Ensures that the values in the column satisfy a specific condition.
+
+5. **`table_constraints`:**
+   - Constraints applied to the table as a whole. Examples include:
+     - **`PRIMARY KEY`** on multiple columns (composite primary key).
+     - **`FOREIGN KEY`** constraints to establish relationships between tables.
+
+#### Example
+
+Here’s an example of creating a table named `employees` with various columns and constraints:
+
+```sql
+CREATE TABLE employees (
+    employee_id INT PRIMARY KEY,          -- Unique identifier for each employee
+    first_name VARCHAR(50) NOT NULL,      -- Employee's first name, cannot be NULL
+    last_name VARCHAR(50) NOT NULL,       -- Employee's last name, cannot be NULL
+    birth_date DATE,                      -- Employee's birth date
+    hire_date DATE DEFAULT CURRENT_DATE,  -- Date of hiring, defaults to the current date
+    salary DECIMAL(10, 2) CHECK (salary > 0) -- Employee's salary, must be greater than 0
+);
+
+The `CREATE TABLE` statement in SQL can include **foreign keys** to establish and enforce relationships between tables. A foreign key is a column or set of columns in one table that uniquely identifies a row in another table, thereby ensuring referential integrity between related data.
+
+#### Syntax with Foreign Keys
+
+```sql
+CREATE TABLE child_table (
+    column1 data_type [constraints],
+    column2 data_type [constraints],
+    ...
+    CONSTRAINT fk_constraint_name FOREIGN KEY (foreign_key_column) REFERENCES parent_table(parent_key_column),
+    ...
+    table_constraints
+);
+```
+
+#### Components
+
+1. **`child_table`:** The table that contains the foreign key. This table is often referred to as the "child" table in the relationship.
+
+2. **`foreign_key_column`:** The column in the child table that references the primary key in the parent table. This column establishes the relationship.
+
+3. **`parent_table`:** The table that contains the primary key. This is often referred to as the "parent" table.
+
+4. **`parent_key_column`:** The primary key column in the parent table that the foreign key references.
+
+5. **`fk_constraint_name`:** The name of the foreign key constraint. This is optional but useful for identifying and managing constraints.
+
+#### Example
+
+Suppose we have two tables: `departments` and `employees`. The `employees` table should have a foreign key that references the `departments` table to indicate which department each employee belongs to.
+
+1. **Creating the Parent Table (`departments`):**
+
+   ```sql
+   CREATE TABLE departments (
+       department_id INT PRIMARY KEY,         -- Unique identifier for each department
+       department_name VARCHAR(100) NOT NULL  -- Name of the department
+   );
+   ```
+
+2. **Creating the Child Table (`employees`) with a Foreign Key:**
+
+   ```sql
+   CREATE TABLE employees (
+       employee_id INT PRIMARY KEY,            -- Unique identifier for each employee
+       first_name VARCHAR(50) NOT NULL,        -- Employee's first name
+       last_name VARCHAR(50) NOT NULL,         -- Employee's last name
+       birth_date DATE,                        -- Employee's birth date
+       hire_date DATE DEFAULT CURRENT_DATE,    -- Date of hiring
+       salary DECIMAL(10, 2) CHECK (salary > 0), -- Employee's salary
+       department_id INT,                      -- Foreign key column
+       CONSTRAINT fk_department
+           FOREIGN KEY (department_id)         -- Define foreign key constraint
+           REFERENCES departments(department_id) -- References the parent table
+   );
+   ```
+
+#### Key Points
+
+- **Referential Integrity:** The foreign key ensures that each value in the `department_id` column of the `employees` table must match a value in the `department_id` column of the `departments` table. This prevents orphaned records and ensures data consistency.
+  
+- **Constraint Actions:** You can specify actions for updates and deletions in the parent table using options like `ON DELETE CASCADE` or `ON UPDATE SET NULL`. These options define what happens in the child table if the referenced record in the parent table is updated or deleted.
+  ```sql
+  CONSTRAINT fk_department
+      FOREIGN KEY (department_id)
+      REFERENCES departments(department_id)
+      ON DELETE SET NULL
+  ```
+
+- **Data Types:** Choose appropriate data types for each column based on the kind of data you intend to store.
+- **Constraints:** Use constraints to enforce data integrity and business rules.
+- **Table Relationships:** Define foreign key constraints if the table is related to other tables to ensure referential integrity.
+
+![Create table.](imgs/09-create-table.png)
+
+### Data Manipulation Language Commands
+
+Data Manipulation Language (DML) commands in SQL are used to manipulate and manage data within relational databases.
+
+#### 1. **SELECT**
+
+**Description:** Retrieves data from one or more tables.
+
+**Syntax:**
+```sql
+SELECT column1, column2, ...
+FROM table_name
+WHERE condition
+ORDER BY column
+LIMIT number;
+```
+
+**Example:**
+```sql
+-- Retrieve all columns from the "employees" table
+SELECT * FROM employees;
+
+-- Retrieve specific columns and filter results
+SELECT first_name, last_name, salary
+FROM employees
+WHERE department_id = 2
+ORDER BY salary DESC;
+```
+
+#### 2. **INSERT**
+
+**Description:** Adds new rows of data into a table.
+
+**Syntax:**
+```sql
+INSERT INTO table_name (column1, column2, ...)
+VALUES (value1, value2, ...);
+```
+
+**Example:**
+```sql
+-- Insert a new row into the "employees" table
+INSERT INTO employees (employee_id, first_name, last_name, birth_date, hire_date, salary, department_id)
+VALUES (1001, 'John', 'Doe', '1985-04-23', '2023-01-15', 55000.00, 2);
+```
+
+#### 3. **UPDATE**
+
+**Description:** Modifies existing rows in a table.
+
+**Syntax:**
+```sql
+UPDATE table_name
+SET column1 = value1, column2 = value2, ...
+WHERE condition;
+```
+
+**Example:**
+```sql
+-- Update the salary of an employee with a specific ID
+UPDATE employees
+SET salary = 60000.00
+WHERE employee_id = 1001;
+
+-- Update multiple columns
+UPDATE employees
+SET salary = salary * 1.05, department_id = 3
+WHERE hire_date < '2020-01-01';
+```
+
+#### 4. **DELETE**
+
+**Description:** Removes rows from a table.
+
+**Syntax:**
+```sql
+DELETE FROM table_name
+WHERE condition;
+```
+
+**Example:**
+```sql
+-- Delete a specific row from the "employees" table
+DELETE FROM employees
+WHERE employee_id = 1001;
+
+-- Delete rows that meet a certain condition
+DELETE FROM employees
+WHERE hire_date < '2022-01-01';
+```
+
+#### 5. **MERGE** (or UPSERT)
+
+**Description:** Combines `INSERT` and `UPDATE` operations. It is used to insert a new row or update an existing row based on certain conditions. Not supported by all SQL databases.
+
+**Syntax:**
+```sql
+MERGE INTO target_table AS target
+USING source_table AS source
+ON (target.id = source.id)
+WHEN MATCHED THEN
+    UPDATE SET column1 = source.value1, column2 = source.value2, ...
+WHEN NOT MATCHED THEN
+    INSERT (column1, column2, ...)
+    VALUES (source.value1, source.value2, ...);
+```
+
+**Example:**
+```sql
+-- Example of a MERGE operation
+MERGE INTO employees AS e
+USING (SELECT 1002 AS employee_id, 'Jane' AS first_name, 'Smith' AS last_name, 50000.00 AS salary) AS s
+ON (e.employee_id = s.employee_id)
+WHEN MATCHED THEN
+    UPDATE SET e.salary = s.salary
+WHEN NOT MATCHED THEN
+    INSERT (employee_id, first_name, last_name, salary)
+    VALUES (s.employee_id, s.first_name, s.last_name, s.salary);
+```
+
+
+
+
+
+
+### Data Definition Language Commands
+
+Data Definition Language (DDL) commands in SQL are used to define and manage the structure of database objects such as tables, indexes, and schemas.
+
+#### 1. **CREATE TABLE**
+
+**Description:** Creates a new table in the database.
+
+**Syntax:**
+```sql
+CREATE TABLE table_name (
+    column1 data_type [constraints],
+    column2 data_type [constraints],
+    ...
+    table_constraints
+);
+```
+
+**Example:**
+```sql
+-- Create a table named "employees"
+CREATE TABLE employees (
+    employee_id INT PRIMARY KEY,          -- Primary key column
+    first_name VARCHAR(50) NOT NULL,      -- Employee's first name, cannot be NULL
+    last_name VARCHAR(50) NOT NULL,       -- Employee's last name, cannot be NULL
+    birth_date DATE,                      -- Employee's birth date
+    hire_date DATE DEFAULT CURRENT_DATE,  -- Default value for hire_date
+    salary DECIMAL(10, 2) CHECK (salary > 0) -- Salary must be greater than 0
+);
+```
+
+#### 2. **ALTER TABLE**
+
+**Description:** Modifies an existing table structure, such as adding, dropping, or modifying columns or constraints.
+
+**Syntax:**
+```sql
+ALTER TABLE table_name
+ADD column_name data_type [constraints];
+ 
+ALTER TABLE table_name
+DROP COLUMN column_name;
+
+ALTER TABLE table_name
+MODIFY COLUMN column_name data_type [constraints];
+ 
+ALTER TABLE table_name
+ADD CONSTRAINT constraint_name constraint_definition;
+ 
+ALTER TABLE table_name
+DROP CONSTRAINT constraint_name;
+```
+
+**Example:**
+```sql
+-- Add a new column to the "employees" table
+ALTER TABLE employees
+ADD email VARCHAR(100);
+
+-- Drop a column from the "employees" table
+ALTER TABLE employees
+DROP COLUMN email;
+
+-- Modify an existing column
+ALTER TABLE employees
+MODIFY COLUMN salary DECIMAL(12, 2);
+
+-- Add a new constraint
+ALTER TABLE employees
+ADD CONSTRAINT fk_department
+FOREIGN KEY (department_id)
+REFERENCES departments(department_id);
+
+-- Drop an existing constraint
+ALTER TABLE employees
+DROP CONSTRAINT fk_department;
+```
+
+#### 3. **DROP TABLE**
+
+**Description:** Deletes an existing table and all of its data from the database.
+
+**Syntax:**
+```sql
+DROP TABLE table_name;
+```
+
+**Example:**
+```sql
+-- Drop the "employees" table
+DROP TABLE employees;
+```
+
+#### 4. **CREATE INDEX**
+
+**Description:** Creates an index on one or more columns of a table to improve query performance.
+
+**Syntax:**
+```sql
+CREATE INDEX index_name
+ON table_name (column1, column2, ...);
+```
+
+**Example:**
+```sql
+-- Create an index on the "salary" column of the "employees" table
+CREATE INDEX idx_salary
+ON employees (salary);
+```
+
+#### 5. **DROP INDEX**
+
+**Description:** Deletes an existing index from a table.
+
+**Syntax:**
+```sql
+DROP INDEX index_name;
+```
+
+**Example:**
+```sql
+-- Drop the index named "idx_salary"
+DROP INDEX idx_salary;
+```
+
+#### 6. **CREATE VIEW**
+
+**Description:** Creates a virtual table based on the result of a query. A view does not store data itself but provides a way to access data from one or more tables.
+
+**Syntax:**
+```sql
+CREATE VIEW view_name AS
+SELECT column1, column2, ...
+FROM table_name
+WHERE condition;
+```
+
+**Example:**
+```sql
+-- Create a view to display employees with a salary greater than 50,000
+CREATE VIEW high_salary_employees AS
+SELECT employee_id, first_name, last_name, salary
+FROM employees
+WHERE salary > 50000;
+```
+
+#### 7. **DROP VIEW**
+
+**Description:** Deletes an existing view from the database.
+
+**Syntax:**
+```sql
+DROP VIEW view_name;
+```
+
+**Example:**
+```sql
+-- Drop the view named "high_salary_employees"
+DROP VIEW high_salary_employees;
+```
+
+#### 8. **CREATE SCHEMA**
+
+**Description:** Creates a new schema, which is a logical grouping of database objects.
+
+**Syntax:**
+```sql
+CREATE SCHEMA schema_name;
+```
+
+**Example:**
+```sql
+-- Create a schema named "sales"
+CREATE SCHEMA sales;
+```
+
+#### 9. **DROP SCHEMA**
+
+**Description:** Deletes an existing schema and optionally all its objects.
+
+**Syntax:**
+```sql
+DROP SCHEMA schema_name [CASCADE];
+```
+
+**Example:**
+```sql
+-- Drop the schema named "sales" and all objects within it
+DROP SCHEMA sales CASCADE;
+```
+
+
+#### Notes
+1. Unlike in set theory, SQL allows duplicates if the field is not a key.
+2. use `select distinct` to retrieve unique fields.
+3. `select all` or `select *` get all fields unique or not
+4. Arithmetic operations are allowed. `select ID, name, salary/12 as monthly_salary from instructor`
+5. `select * from instructor, teaches` makes a cartesian product
+
+
+#### Cartesian product
+
+The Cartesian product of two tables, `TableA` and `TableB`, is represented as:
+
+```
+TableA × TableB
+```
+
+If `TableA` has `m` rows and `TableB` has `n` rows, the Cartesian product will have `m * n` rows.
+
+##### SQL Syntax for Cartesian Product
+
+The Cartesian product is typically achieved using the `CROSS JOIN` keyword in SQL. Here’s the general syntax:
+
+```sql
+SELECT *
+FROM TableA
+CROSS JOIN TableB;
+```
+
+##### Example
+
+Consider two tables:
+
+**TableA:**
+| ID | Name  |
+|----|-------|
+| 1  | Alice |
+| 2  | Bob   |
+
+**TableB:**
+| Course  |
+|---------|
+| Math    |
+| Science |
+
+Performing a Cartesian product (cross join) between `TableA` and `TableB` results in:
+
+```sql
+SELECT *
+FROM TableA
+CROSS JOIN TableB;
+```
+
+**Result:**
+| ID | Name  | Course  |
+|----|-------|---------|
+| 1  | Alice | Math    |
+| 1  | Alice | Science |
+| 2  | Bob   | Math    |
+| 2  | Bob   | Science |
+
+##### Cartesian Product Notes
+
+1. **Number of Rows:** The number of rows in the result set is the product of the number of rows in the two tables. If `TableA` has 3 rows and `TableB` has 4 rows, the result of the Cartesian product will have 3 * 4 = 12 rows.
+
+2. **Use Cases:** Cartesian products are often used to explore combinations of rows from different tables. However, they are generally not useful in practical queries unless combined with filtering conditions to produce meaningful results.
+
+3. **Performance Considerations:** Cartesian products can lead to very large result sets, especially with large tables. This can impact performance and should be used cautiously. Typically, they are used in conjunction with `WHERE` clauses to limit the results to relevant combinations.
+
+4. **Combining with Other Joins:** Cartesian products are foundational to understanding more complex joins. For example, `INNER JOIN`, `LEFT JOIN`, `RIGHT JOIN`, and `FULL JOIN` operations often start with a Cartesian product and then filter the results based on join conditions.
+
+
+
+
+## [Introduction to SQL/2 (31.44)](https://youtu.be/hEgb_76wz1s?list=PLZ2ps__7DhBYc4jkUk_yQAjYEVFzVzhdU)
+
+Cartesian product aka `SELECT * from table1, table2` was generating a union of all records from table1, and all records from table2.
+1. Find out what happens when you do a cart-product from 2 tables not linked by a FK?
+2. **Natural Join** or **Equi-Join** `SELECT * from table1, table2 where table1.id = table2.id`
+
+### Rename as an operation
+
+in a cart-product of `table1 x table1`
+```sql
+select distinct T.name
+from instructor as T, instructor as S
+where T.salary > S.salary and S.department = 'Com Sci'
+```
+NOTE: You may drop `as`
+
+### Wildcard matching
+
+
+1. `where TS.name like '%dars%'`
+2. `where TS.name like 'dars%'`
+3. `where TS.name like '%dars'`
+4. `where TS.name like '100%' escape '\'`
+5. `where TS.name like 'Ada__h'`
+6. `where TS.name like '___'` # 3 chars only
+7. `where TS.name like '___%'` # atleast 3 chars
+
+### Limiting
+
+```sql
+select distinct name from instructors
+order by name
+limit 10 "or" fetch 10
+```
+
+### Range
+
+`where salary between 90 and 100`
+
+### Tuple
+
+```sql
+where (instructor.id, dept_name) = (teacher.id, "biology")
+```
+
+```sql
+select name from instructor where dep_name in ('CS', 'Biology')
+```
