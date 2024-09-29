@@ -95,20 +95,65 @@ Electronics Data Management Parameters
    5. instances can be added/removed but schema remains the same unless `alter table`
    6. `Attributes` are field names in a schema.. like account_number, account_type
    
-   **Logical Schema vs. Physical Schema:**
+#### 1. **Physical Level (Lowest Level of Abstraction)**
+   - **Description**: The physical level describes **how the data is actually stored** in the database. It involves complex data structures and file organization methods used to store data on storage devices, such as hard drives or SSDs.
+   - **Focus**: It focuses on the **efficiency** and **optimization** of data storage and retrieval, ensuring that the database runs smoothly and handles large volumes of data.
+   - **Example**: At this level, data could be stored in the form of index files, B-trees, or hash functions, and the system defines how to store and access these files on disk.
+
+#### 2. **Logical Level (Middle Level of Abstraction)**
+   - **Description**: The logical level defines **what data is stored** in the database and the **relationships among those data**. It describes the database structure as a whole in terms of tables, records, and fields, without going into details of how these elements are physically stored.
+   - **Focus**: This level focuses on the **structure of the entire database** as seen by the database administrators and developers. It involves the design of schemas that define entities, attributes, and relationships, typically using data models like the relational model.
+   - **Example**: A table named "Employees" with columns such as "EmployeeID", "Name", and "Salary" is part of the logical schema. It defines the content and structure of data but not how it is stored.
+
+#### 3. **View Level (Highest Level of Abstraction)**
+   - **Description**: The view level describes **only part of the entire database** that is relevant to a particular user or group of users. It provides multiple perspectives or "views" of the database, ensuring that users can access the data they need without seeing the complexity of the database.
+   - **Focus**: It focuses on **user interaction** and **data security** by restricting access to only the necessary data. Different users might have different views based on their role and permissions, such as salespeople seeing customer information without access to sensitive employee data.
+   - **Example**: A bank manager might have access to a view showing customer balances and transaction histories, while a bank teller might only see customer names and account numbers.
+
+##### Summary of the Three Levels
+- **Physical Level**: How data is stored physically (internal storage).
+- **Logical Level**: What data is stored and its structure (conceptual structure).
+- **View Level**: How data is presented to users (external views).
+
+This separation of abstraction levels ensures **data independence**, meaning that changes to the physical storage don't affect the logical structure, and changes to the logical structure don't affect the views seen by users.
+
+**Logical Schema vs. Physical Schema:**
    1. Logical Schema: Defines the structure of the database at a logical level. It includes the tables, relationships, constraints, and other elements that define how data is organized and related to each other.
    2. Physical Schema: Refers to how the data is stored on the storage medium. It involves details like file structures, indexing, and access paths.
 
 ![Instance](./imgs/04-instance.png)
 
-   7. Physical data independence
+### Data Independence
+   1. Physical data independence
       1. What Prof. Das is saying is you should be able to modify the physical underlying file format and apply migration without setting the logical table on fire. Like a new version of a DBMS could have a better performing underlying physical file format
       2. He is saying any changes to the Physical schema should not change the logical level or view level (as a consequence of logical independence) of the DBMS
       3. Physical data independence allows database administrators to optimize storage and access methods (e.g., through indexing, partitioning, or clustering) to improve performance without needing to modify how applications interact with the database.
 
-   8. Logical Data Independence says that if you modify the Logical Level, the View should not change
+   2. Logical Data Independence says that if you modify the Logical Level, the View should not change
       1. Logical data independence ensures that changes made to the logical schema, such as adding new fields, changing data types, or modifying relationships, do not necessitate changes to the application programs that use the data.
       2. logical data independence is a fundamental principle that ensures flexibility and stability in database design and management, allowing changes to be made to the logical schema without affecting the applications and users relying on the data.
+
+#### 1. **Physical Data Independence**
+   - **Definition**: Physical data independence refers to the ability to change the **physical schema** without affecting the **logical schema** (and by extension, the application programs or users interacting with the data). In other words, changes to how the data is stored (e.g., storage structures, access methods, or file organization) do not require changes to the logical structure of the database.
+   - **Importance**: This is essential because administrators may need to optimize or modify how data is stored (for example, by changing indexing methods, compressing data, or switching to a new storage device) to improve performance or efficiency, but these changes should not affect the logical design of the database.
+   - **Example**: Suppose a company changes the way it physically stores employee records from a sequential file format to an indexed file format. As long as the logical structure (e.g., the Employee table with columns for EmployeeID, Name, Salary) remains unchanged, applications querying the Employee table should continue to work without modification.
+
+#### 2. **Logical Data Independence**
+   - **Definition**: Logical data independence refers to the ability to change the **logical schema** without having to change the **external schema** or user views. In other words, changes to the logical design of the database (such as adding new fields or tables, changing relationships, etc.) should not require changes to how users or applications access the data.
+   - **Importance**: This is crucial because organizations often need to modify their data models (e.g., adding new fields to accommodate new business requirements) without affecting existing applications that depend on specific views of the data.
+   - **Example**: A company may decide to add a new attribute, "PhoneNumber", to the Employee table. With logical data independence, existing applications that access only "EmployeeID" and "Name" will not be affected, even though the logical schema has changed.
+
+#### Summary
+- **Physical Data Independence**: Changes to the **physical storage** of data do not affect the **logical schema**.
+- **Logical Data Independence**: Changes to the **logical schema** do not affect the **user views** (external schema) or application programs.
+
+#### Importance of Data Independence
+- **Flexibility**: Data independence allows database systems to be flexible and adapt to changing requirements without significant disruption to the existing system.
+- **Cost-Efficiency**: It reduces the cost and effort required to modify the database when performance optimizations or new features are added.
+- **Maintenance**: Database administrators and developers can focus on maintaining different parts of the system (physical storage, logical structure, or user views) independently, making database management more straightforward.
+
+By promoting separation between levels of abstraction (physical, logical, and view), data independence ensures that the database system remains scalable, maintainable, and adaptable to future needs.
+
 ### Data Model
    Is a description of the following
    1. Data (fields, attributes, data types)
@@ -235,3 +280,82 @@ Database Migration refers to changing the Logical Design Schema and/or migrating
 4. Can be queried using forward XML parsing, XML DOM load, XPATH
 5. Text based - so easy to transmit across internet
 6. Serializable - Objects to XML and vice versa
+
+## Parts of a Database
+
+### 1. **Hardware**
+   - **Description**: The physical devices used in a database system, such as computers, storage devices (e.g., hard drives, SSDs), servers, and network equipment.
+   - **Role**: Hardware provides the **infrastructure** to store and process the data and execute the necessary database operations.
+   - **Example**: The database server where the database is installed, the disk on which data files are stored, or a network interface used to connect clients to the database.
+
+### 2. **Software**
+   - **Description**: The software includes the **Database Management System (DBMS)** itself, along with any related applications or utilities that help manage the database. 
+   - **Components**:
+     - **DBMS Software**: The core software responsible for managing the database, handling queries, ensuring transaction processing, maintaining data integrity, etc.
+     - **Operating System**: The system software that interacts with the hardware and runs the DBMS.
+     - **Database Applications**: Programs that interact with the database system for various tasks, like data entry or report generation.
+   - **Role**: Software handles the **data manipulation, query processing, storage management**, and ensures **data security** and **integrity**.
+   - **Example**: Oracle, MySQL, PostgreSQL, or SQL Server are examples of DBMS software. An application like a CRM tool might use the DBMS to store customer data.
+
+### 3. **Data**
+   - **Description**: The most critical component of a database system, data refers to the actual information stored within the database, which can be processed, analyzed, and retrieved.
+   - **Structure**: The data is usually organized in a specific format (e.g., tables in a relational database) based on the **database schema**.
+   - **Types of Data**:
+     - **User Data**: The actual business data, such as customer details, orders, transactions, etc.
+     - **Metadata**: Data about the data, such as table definitions, column types, constraints, etc.
+     - **Indexes**: Additional structures that improve the speed of data retrieval.
+   - **Role**: Data is at the core of the system and is the main reason for the system's existence.
+   - **Example**: In an employee database, the actual records of employees (names, IDs, salaries) are the user data, while the schema defining the structure (tables, fields) is the metadata.
+
+### 4. **Users**
+   - **Description**: The users are people or systems that interact with the database. They can be classified based on their roles and the tasks they perform.
+   - **Types of Users**:
+     - **Database Administrators (DBAs)**: Responsible for managing the database system, including database design, performance tuning, security, backup, and recovery.
+     - **Database Designers**: Define the structure of the database and design the schema that supports the application requirements.
+     - **End Users**: People who interact with the database via applications, usually without knowing the details of how the data is stored or managed.
+     - **Application Programmers**: Developers who write programs that interact with the database to fetch or modify data.
+   - **Role**: Users interact with the database to **query, modify, design**, or **maintain** the database, depending on their roles.
+   - **Example**: A sales manager using an inventory management system is an end user, while a database administrator may manage backups and performance tuning.
+
+### 5. **Procedures**
+   - **Description**: Procedures refer to the set of **rules, instructions, or protocols** that guide the design, use, and maintenance of the database. These procedures ensure the database operates efficiently and securely.
+   - **Role**: Procedures ensure that the database system functions according to policies, including **backup protocols**, **recovery procedures**, **security policies**, and **database design guidelines**.
+   - **Example**: A procedure could involve the steps for performing a regular backup of the database or protocols for how users should query the database without causing performance issues.
+
+### 6. **Database Languages**
+   - **Description**: Database languages are used to interact with the database system. The most common language is SQL (Structured Query Language), which allows users to query and manipulate data.
+   - **Types of Database Languages**:
+     - **Data Definition Language (DDL)**: Defines the database structure, such as creating, altering, and deleting tables (e.g., `CREATE`, `ALTER`, `DROP` commands).
+     - **Data Manipulation Language (DML)**: Handles the retrieval, insertion, modification, and deletion of data (e.g., `SELECT`, `INSERT`, `UPDATE`, `DELETE` commands).
+     - **Data Control Language (DCL)**: Manages access control, specifying who can access and manipulate data (e.g., `GRANT`, `REVOKE` commands).
+     - **Transaction Control Language (TCL)**: Manages transaction behavior (e.g., `COMMIT`, `ROLLBACK`).
+   - **Role**: These languages allow users and administrators to interact with the database, modify its structure, query data, and manage access.
+   - **Example**: A `SELECT` query to retrieve employee data or a `CREATE TABLE` command to create a new table in the database.
+
+### 7. **Database Schema**
+   - **Description**: The database schema defines the logical structure of the database, describing how the data is organized and the relationships between different pieces of data.
+   - **Types of Schemas**:
+     - **Physical Schema**: Describes the physical storage of data (how data is stored in memory or on disk).
+     - **Logical Schema**: Describes the structure of the data (e.g., tables, fields, and relationships).
+     - **View Schema**: Defines different views of the data for various users or applications.
+   - **Role**: The schema serves as a blueprint for how the database is structured and managed, providing the framework for both data storage and retrieval.
+   - **Example**: The schema could define a relational model with tables for "Employees", "Departments", and "Salaries", along with the relationships between them.
+
+### 8. **Query Processor**
+   - **Description**: The query processor translates user queries (typically written in SQL) into efficient execution plans that the database system can use to retrieve or modify data.
+   - **Components**:
+     - **Query Parser**: Parses and checks the syntax of the user’s query.
+     - **Query Optimizer**: Optimizes the query by generating an efficient execution plan, considering factors like indexes, available memory, and data distribution.
+     - **Execution Engine**: Executes the query based on the optimized plan and retrieves or modifies data as requested.
+   - **Role**: The query processor ensures that user queries are processed efficiently and accurately.
+   - **Example**: When a user submits a query like `SELECT * FROM Employees WHERE Department = 'HR'`, the query processor determines the best way to retrieve the data (e.g., using an index).
+
+### 9. **Storage Manager**
+   - **Description**: The storage manager is responsible for managing how data is stored on disk, retrieved, and updated.
+   - **Components**:
+     - **Buffer Manager**: Manages data in memory, minimizing the number of disk I/O operations.
+     - **File Manager**: Manages space allocation on disk and keeps track of data files.
+     - **Transaction Manager**: Ensures that database transactions are processed in a way that maintains data consistency and integrity, especially in cases of concurrent transactions.
+     - **Authorization and Integrity Manager**: Enforces security and integrity constraints.
+   - **Role**: It handles the interaction between the **logical data model** and the **physical storage**.
+   - **Example**: When data is inserted or updated, the storage manager writes the changes to disk in an efficient manner and ensures they can be recovered if the system crashes..
