@@ -60,6 +60,42 @@ Good examples of surrogate key are like **JobID**, **Serial Number**. These have
 
 A table can have multiple candidate keys, and each one is a potential choice for the primary key of the table. 
 
+#### Secondary Keys
+
+A **secondary key** is a set of one or more attributes (columns) used to create an additional indexing mechanism to enhance search performance. A secondary key is different from a primary key or unique key because it is not required to be unique and is mainly used to improve query efficiency. 
+
+### Key Concepts:
+
+1. **Primary Key**: 
+   - Uniquely identifies each record in a table.
+   - Cannot be `NULL`.
+   - There is only one primary key per table.
+
+2. **Secondary Key**:
+   - A field or combination of fields that are used to create indexes.
+   - Helps in optimizing data retrieval operations, especially when searching using non-primary key columns.
+   - Can have duplicate values.
+   - A table can have multiple secondary keys.
+
+3. **Usage of Secondary Keys**:
+   - Often implemented as **indexes** in an RDBMS.
+   - Example: If the primary key of a table is `EmployeeID`, but you frequently search the database by `Email` or `PhoneNumber`, you could create a secondary index on `Email` or `PhoneNumber` to speed up these queries.
+
+### Example:
+Suppose you have an `Employees` table:
+| EmployeeID | Name    | Email           | Department |
+|------------|---------|-----------------|------------|
+| 1          | Alice   | alice@company.com | HR        |
+| 2          | Bob     | bob@company.com   | IT        |
+
+- **Primary Key**: `EmployeeID` (unique for each employee).
+- **Secondary Key**: `Email` (if users often search for employees by email, indexing on `Email` would improve the query performance).
+
+### Key Points:
+- Secondary keys do not enforce uniqueness or non-null constraints.
+- They enhance query performance but do not change the logical design or integrity of the database.
+
+
 
 #### Foreign Keys
 
@@ -75,12 +111,125 @@ Foreign key is a column or a set of columns in one table that creates a link bet
 
 ![Typical DB Schema Diagram](./imgs/08-typical-schema-diagram.png)
 
+### Recapture on Keys of a R.D.B.M.S
+
+In a **Relational Database Management System (RDBMS)**, various types of keys are used to ensure data integrity, uniquely identify records, and establish relationships between tables. Each key has a specific role in the database design. Below are the most common types of keys:
+
+#### 1. **Primary Key**
+   - **Definition**: A column or a set of columns that uniquely identifies each row in a table.
+   - **Characteristics**:
+     - Must contain unique values.
+     - Cannot contain `NULL` values.
+     - A table can have only one primary key.
+   - **Example**: In an `Employees` table, the `EmployeeID` column is the primary key because it uniquely identifies each employee.
+
+#### 2. **Candidate Key**
+   - **Definition**: A column or a combination of columns that can uniquely identify any record in a table. Every candidate key is a potential primary key.
+   - **Characteristics**:
+     - Can have more than one candidate key in a table.
+     - Each candidate key must contain unique and non-`NULL` values.
+     - A candidate key is a minimal super key, meaning it has no unnecessary attributes—just the minimum number of columns required to uniquely identify a row. In other words, it is a super key with no redundancy.
+     - A Candidate Key is always a Super Key!!
+   - **Example**: In the `Employees` table, both `EmployeeID` and `Email` could be candidate keys if both are unique and non-null.
+
+#### 3. **Super Key**
+   - **Definition**: A set of one or more columns that can uniquely identify a row in a table.
+   - **Characteristics**:
+     - A super key may contain extra attributes that are not necessary for uniqueness.
+     - Every primary key is a super key, but not every super key is a primary key.
+     - A super key is a set of one or more attributes (columns) that can uniquely identify a row in a table. It may contain extra or redundant attributes beyond what is necessary for uniqueness.
+     - A Candidate Key is always a Super Key!!
+     - A Foreign Key can be Super Key
+     - A Primary Key is always a Super Key
+
+   - **Example**: In the `Employees` table, the combination of `EmployeeID` and `Name` could form a super key, even though `EmployeeID` alone is enough to uniquely identify a row.
+
+#### 4. **Foreign Key**
+   - **Definition**: A column or set of columns in one table that refers to the primary key of another table, establishing a relationship between the two tables.
+   - **Characteristics**:
+     - It enforces referential integrity.
+     - Allows linking data between tables.
+     - The values of a foreign key must match values in the referenced table’s primary key or be `NULL`.
+   - **Example**: In an `Orders` table, the `CustomerID` can be a foreign key that references the `CustomerID` in the `Customers` table.
+
+  ```sql
+  CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY,
+    CustomerName VARCHAR(100),
+    ContactNumber VARCHAR(15),
+    Email VARCHAR(100)
+  );
+  CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY,
+    OrderDate DATE,
+    CustomerID INT,
+    Amount DECIMAL(10, 2),
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
+  );
+  ```
+
+#### 5. **Composite Key**
+   - **Definition**: A primary key that consists of more than one column.
+   - **Characteristics**:
+     - It is used when a single column is not sufficient to uniquely identify records.
+     - All columns in the composite key together must be unique, but individual columns may not be unique.
+   - **Example**: In an `Enrollment` table, the combination of `StudentID` and `CourseID` could be used as a composite key to uniquely identify a student's enrollment in a course.
+
+  ```sql
+  CREATE TABLE Orders (
+    OrderID INT,
+    ProductID INT,
+    Quantity INT,
+    OrderDate DATE,
+    PRIMARY KEY (OrderID, ProductID)
+  );
+  ```
+  
+
+#### 6. **Alternate Key**
+   - **Definition**: A candidate key that is not selected as the primary key.
+   - **Characteristics**:
+     - Alternate keys are still unique and can be used to identify records, but they are not the primary identifier.
+   - **Example**: If `EmployeeID` is the primary key, then `Email` could be an alternate key, assuming both fields are unique.
+
+#### 7. **Unique Key**
+   - **Definition**: A column or set of columns that must have unique values across all rows in a table.
+   - **Characteristics**:
+     - Unlike a primary key, a unique key can contain a single `NULL` value.
+     - A table can have multiple unique keys.
+   - **Example**: In the `Employees` table, the `Email` field could be defined as a unique key to ensure no two employees have the same email address.
+
+#### 8. **Secondary Key**
+   - **Definition**: A non-unique key used for indexing purposes to improve query performance.
+   - **Characteristics**:
+     - It is not required to have unique or non-null values.
+     - It is often used in queries to quickly retrieve data based on non-primary key columns.
+   - **Example**: In the `Products` table, `Category` could be a secondary key if queries are frequently run based on product categories.
+
+---
+
+#### Summary of Key Types:
+
+| **Key Type**        | **Uniqueness**  | **Can Contain NULL?**  | **Purpose**                                                                 |
+|---------------------|-----------------|------------------------|------------------------------------------------------------------------------|
+| **Primary Key**      | Must be unique  | No                     | Uniquely identifies each record.                                             |
+| **Candidate Key**    | Must be unique  | No                     | Potential primary key.                                                       |
+| **Super Key**        | May be unique   | No                     | Set of attributes that uniquely identify a row, possibly with redundant attributes. |
+| **Foreign Key**      | No              | Yes                    | Links tables and enforces referential integrity.                             |
+| **Composite Key**    | Must be unique  | No                     | Combines multiple columns to uniquely identify a record.                     |
+| **Alternate Key**    | Must be unique  | No                     | Candidate key not chosen as the primary key.                                 |
+| **Unique Key**       | Must be unique  | Yes (single NULL)      | Ensures column values are unique.                                            |
+| **Secondary Key**    | No              | Yes                    | Used for indexing and speeding up data retrieval.                            | 
+
+
 ### Relational Programming Languages
 #### Procedural vs Relational Programming
 
-Procedural programming is based on the concept of procedure calls. Procedures, also known as functions or routines, are a sequence of instructions that operate on data. The main idea is to structure the program as a set of procedures that manipulate data.
-
-Relational programming is based on the principles of relational databases and logic. It involves working with data in the form of relations (tables) and using logical queries to manipulate and retrieve data.
+- Procedural programming is based on the concept of procedure calls
+- Procedures, also known as functions or routines, are a sequence of instructions that operate on data. The main idea is to structure the program as a set of procedures that manipulate data.
+- Relational programming is based on the principles of relational databases and logic. It involves working with data in the form of relations (tables) and using logical queries to manipulate and retrieve data.
+- In procedural programming style, the programmer specifies how to achieve the output.
+- In declarative programming style, the programmer must know what relationships hold between various entities.
 
 
 #### Procedural vs Declarative
@@ -91,6 +240,9 @@ but finding a x such that $X^2 = Y$ is declarative
 
 WIP Let's explore this later, This is the end of Module 6/Module 1/week 2
 
+- In procedural programming style, the programmer specifies how to achieve the output.
+- In declarative programming style, the programmer must know what relationships hold between various entities.
+- Relational algebra is an example of declarative programming style.
 
 #### Turing Machine steps
 
@@ -122,6 +274,217 @@ The **Turing Steps** are specific actions that define how a Turing machine opera
 ##### 6. **Halting Condition**
 
 - **Description:** The computation stops when the Turing machine reaches a halting state or if no applicable transition function is defined for the current state and symbol. This marks the end of the computation and the final result is represented on the tape.
+## [L2.2: Introduction to Relational Model/2 (29:49)](https://youtu.be/D8e1-apWxo8)
+
+
+### Relational Operators
+
+**Relational operators** are used to perform operations on relations (tables) to retrieve or manipulate data. These operators are fundamental to the relational algebra, which is the theoretical foundation for relational databases and query languages like SQL. They help in manipulating relations and generating new relations as output.
+
+#### Common Relational Operators in RDBMS:
+
+- `AND` operator is written as $\bigwedge$
+  - $\sigma A=B\bigwedge D > 4$
+    - `SELECT * FROM TABLE WHERE A=B AND D > 4`
+- `OR` operator is written as $\bigvee$
+  -  $\sigma A=B\bigvee D > 4$
+     -  `SELECT * FROM TABLE WHERE A=B OR D > 4`
+-  Renaming a TABLE
+   -  $\rho_{X}(E)$
+      -  renames expression **E** under name **X**
+-  Composing Operations
+   -  $\sigma_{A = C}(r \times s)$
+   -  SELECT WHERE A = C the cartesian product $r \times s$
+-  Natural Join/Inner Join
+   -  $\pi_{A,r.B,C,r.d, E}(\sigma_{r.B = s.B}\bigwedge r.D=s.D (r \times s))$
+      -  `SELECT a, r.B, C, r.D WHERE r.B = s.B AND r.D = s.D` from the cartesian product $r \times s$
+-  $\displaystyle \large \pi \neg_{(A=B \bigvee C > 2)}(r)$
+   -  This means find all records where A == B OR C > 2 and then find its inverse
+
+**NOTE** if 2 relations are not UNION compatible, then you cannot do INTERSECTION, UNION and DIFFERENCE. But you can surely do CARTESIAN PRODUCT
+
+1. **Selection (σ)**
+   - **Operation**: Selects rows from a table that satisfy a given condition.
+   - **SQL Equivalent**: `SELECT ... WHERE ...`
+   - **Example**: Given a `Customers` table, if you want to select customers from the "USA":
+     ```sql
+     SELECT * FROM Customers WHERE Country = 'USA';
+     ```
+   - **Notation**: `σ_condition (Table)`
+   - **Example**: `σ_Country='USA'(Customers)`
+
+2. **Projection (π)**
+   - **Operation**: Selects specific columns from a table, effectively reducing the number of columns.
+   - **SQL Equivalent**: `SELECT column1, column2, ...`
+   - **Example**: To get only the `CustomerName` and `Country` from the `Customers` table:
+     ```sql
+     SELECT CustomerName, Country FROM Customers;
+     ```
+   - **Notation**: `π_column1, column2 (Table)`
+   - **Example**: `π_CustomerName, Country(Customers)`
+
+3. **Union (⋃)**
+   - **Operation**: Combines the results of two relations (tables) and removes duplicates. Both relations must have the same number of columns and corresponding data types.
+   - **SQL Equivalent**: `SELECT ... UNION SELECT ...`
+   - **Example**: Combine two tables `Customers_USA` and `Customers_Canada`:
+     ```sql
+     SELECT * FROM Customers_USA
+     UNION
+     SELECT * FROM Customers_Canada;
+     ```
+   - **Notation**: `Table1 ⋃ Table2`
+
+4. **Set Difference (−)**
+   - **Operation**: Returns the rows that are present in the first table but not in the second.
+   - **SQL Equivalent**: `SELECT ... EXCEPT SELECT ...` (in some databases, `MINUS` is used instead of `EXCEPT`)
+   - **Example**: To find customers who made orders in `2023`, but not in `2024`:
+     ```sql
+     SELECT * FROM Orders_2023
+     EXCEPT
+     SELECT * FROM Orders_2024;
+     ```
+   - **Notation**: `Table1 − Table2`
+
+5. **Intersection (⋂)**
+   - **Operation**: Returns only the rows that are present in both tables.
+   - **SQL Equivalent**: `SELECT ... INTERSECT SELECT ...`
+   - **Example**: To find common customers between two regions:
+     ```sql
+     SELECT * FROM Customers_USA
+     INTERSECT
+     SELECT * FROM Customers_Canada;
+     ```
+   - **Notation**: `Table1 ⋂ Table2`
+
+6. **Cartesian Product (×)**
+   - **Operation**: Combines every row of the first table with every row of the second table, resulting in all possible combinations.
+   - **SQL Equivalent**: Not directly used in SQL but occurs implicitly in joins when not properly constrained.
+   - **Example**: Suppose `Table1` has 3 rows and `Table2` has 2 rows; the result will have 3 × 2 = 6 rows.
+   - **Notation**: `Table1 × Table2`
+
+7. **Join/Natural Join (⨝)**
+   - **Operation**: Combines rows from two tables based on a related column between them. There are several types of joins:
+     - **Inner Join**: Returns rows where there is a match in both tables.
+     - **Left (Outer) Join**: Returns all rows from the left table, and matching rows from the right table. If there’s no match, `NULL` is returned for columns from the right table.
+     - **Right (Outer) Join**: Similar to left join, but returns all rows from the right table.
+     - **Full (Outer) Join**: Returns rows when there’s a match in one of the tables. If there’s no match in one of the tables, `NULL` is returned for that table.
+   - **SQL Equivalent**: `SELECT ... FROM Table1 JOIN Table2 ON ...`
+   - **Example**:
+     ```sql
+     SELECT Orders.OrderID, Customers.CustomerName
+     FROM Orders
+     INNER JOIN Customers ON Orders.CustomerID = Customers.CustomerID;
+     ```
+   - **Notation**: `Table1 ⨝ Table2`
+   - Maximum cardinality of the JOIN will be product of the cardinality of the 2 relations
+     - Minimum would be 0
+
+8. **Division (÷)**
+   - **Operation**: Used when you want to find rows in one table that are associated with **all** rows in another table. This operator is less commonly used in SQL directly but can be constructed using subqueries.
+   - **Example**: To find students who are enrolled in all courses in the `Courses` table.
+   - **SQL Equivalent**: Usually implemented with a combination of `SELECT`, `GROUP BY`, and `HAVING`.
+   - **Notation**: `Table1 ÷ Table2`
+   - 
+---
+
+#### Example Scenario
+
+Imagine we have two tables:
+
+#### `Customers`
+| CustomerID | CustomerName | Country   |
+|------------|--------------|-----------|
+| 1          | Alice        | USA       |
+| 2          | Bob          | Canada    |
+| 3          | Charlie      | USA       |
+
+##### `Orders`
+| OrderID | CustomerID | OrderDate |
+|---------|------------|-----------|
+| 101     | 1          | 2024-10-01|
+| 102     | 2          | 2024-10-02|
+| 103     | 1          | 2024-10-03|
+
+- **Selection (σ)**: Find customers from the USA:
+  ```sql
+  SELECT * FROM Customers WHERE Country = 'USA';
+  ```
+
+- **Projection (π)**: Show only customer names:
+  ```sql
+  SELECT CustomerName FROM Customers;
+  ```
+
+- **Union (⋃)**: Combine two customer lists (e.g., `Customers_USA` and `Customers_Canada`):
+  ```sql
+  SELECT * FROM Customers_USA
+  UNION
+  SELECT * FROM Customers_Canada;
+  ```
+
+- **Join (⨝)**: Combine `Customers` and `Orders` to find all orders with customer names:
+  ```sql
+  SELECT Orders.OrderID, Customers.CustomerName
+  FROM Orders
+  JOIN Customers ON Orders.CustomerID = Customers.CustomerID;
+  ```
+
+### Professor's Visualization of relational operators
+
+![Professor's Visualization of relational operators](./imgs/10-relational-operators.png)
+
+### Properties of Relations
+
+In **relational algebra**, relations (or tables) are the fundamental objects, and they have specific properties that define their structure and behavior. These properties ensure that the relational model remains consistent and easy to manipulate.
+
+#### 1. **Tuples Are Unordered**
+   - The order of rows (tuples) in a relation does not matter. Each tuple represents a unique data record, and the relational model does not assign any significance to the sequence of rows.
+   - Example: If two tuples `{(1, "Alice", "HR")}` and `{(2, "Bob", "IT")}` appear in different orders, the relation remains the same.
+
+#### 2. **Attributes Are Unordered**
+   - The order of columns (attributes) in a relation is also irrelevant. A relation is concerned with attribute names and their associated data, not their order.
+   - Example: A relation with attributes `(EmployeeID, Name, Department)` is the same as `(Name, Department, EmployeeID)` as long as the names and data remain consistent.
+
+#### 3. **Each Attribute Has a Unique Name**
+   - Each attribute (column) within a relation must have a unique name. This ensures that attributes are easily distinguishable.
+   - Example: A relation cannot have two attributes named `EmployeeID`.
+
+#### 4. **Tuples Are Unique (No Duplicate Tuples)**
+   - Each tuple (row) in a relation must be unique; no two tuples can have the same combination of attribute values. This ensures that a relation always has distinct rows.
+   - Example: If `{(1, "Alice", "HR")}` is present in the relation, no other tuple with the same values can exist.
+
+#### 5. **Attribute Values Are Atomic (No Multi-valued Attributes)**
+   - Each attribute must contain a single, indivisible value (atomic value). This property ensures that attributes cannot hold multiple values or sets of values in a single cell.
+   - Example: A cell in a relation cannot contain a list such as `{100, 200}` or a sub-table. Instead, each attribute must store a single value such as `100`.
+
+#### 6. **Domain Constraints**
+   - Each attribute in a relation is defined by a specific domain, which determines the allowable set of values for that attribute. The values in each column must conform to the data type or domain specified.
+   - Example: If the domain for `EmployeeID` is integers, the values in the `EmployeeID` column must be integers (e.g., `1`, `2`, `3`).
+
+#### 7. **Relations Are Finite**
+   - Relations have a finite set of tuples. Although the number of tuples in a relation can be large, it is always finite, making the relation manageable in terms of data processing and operations.
+   - Example: A relation with 1,000 tuples is finite and can be processed in queries, while an infinite set would make computations impossible.
+
+#### 8. **Values Are Non-Relational (No Nested Relations)**
+   - Relations in relational algebra are **flat** tables, meaning that the values of attributes cannot themselves be other relations or tables. This is another manifestation of the atomicity of attribute values.
+   - Example: An attribute in a relation cannot store a sub-table or nested relation as its value.
+
+---
+
+#### Summary of Properties:
+
+| **Property**                      | **Description**                                                                                              |
+|------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| **Tuples Are Unordered**           | The order of rows in a relation does not matter.                                                              |
+| **Attributes Are Unordered**       | The order of columns in a relation does not matter.                                                           |
+| **Each Attribute Has a Unique Name**| Every attribute in a relation must have a distinct name.                                                      |
+| **Tuples Are Unique**              | No two tuples (rows) in a relation can have the same values for all attributes.                               |
+| **Attribute Values Are Atomic**    | Each attribute must have atomic (indivisible) values; no multi-valued or composite attributes are allowed.    |
+| **Domain Constraints**             | The values of each attribute must belong to the predefined domain of that attribute.                          |
+| **Relations Are Finite**           | A relation contains a finite number of tuples.                                                                |
+| **Values Are Non-Relational**      | Attributes cannot contain nested relations or tables as values (no nested tables).                            |
+
+These properties ensure the **integrity**, **consistency**, and **simplicity** of relational databases, making them easy to work with in relational algebra and query languages like SQL.
 
 ## [Introduction to SQL/1 (30:26)](https://www.youtube.com/watch?v=Wv6vM5rGCw0&list=PLZ2ps__7DhBYc4jkUk_yQAjYEVFzVzhdU&index=7&pp=iAQB)
 
@@ -795,6 +1158,7 @@ where (instructor.id, dept_name) = (teacher.id, "biology")
 select name from instructor where dep_name in ('CS', 'Biology')
 ```
 
+A Primary key, Superkey, Candidate key can can uniquely identify the tuples of a relation. But not a Foreign Key!
 
 
 ## [Introduction to Relational Models/3 (00:31:58)](https://youtu.be/AaKMO4-g_zw?list=PLZ2ps__7DhBYc4jkUk_yQAjYEVFzVzhdU)
