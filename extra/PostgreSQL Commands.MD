@@ -1,5 +1,67 @@
 # PostgreSQL Commands
 
+## Setting up PostgreSQL with Docker
+
+1. add a user called `postgres:postgres` with id `999:999`
+   - for Why? check this Dockerfile https://hub.docker.com/layers/library/postgres/10.18/images/sha256-e37849ff3307519e542e6ad13ae3aa2ab8131e448df126f0f86d2c38980c31da?context=explore
+   - the text name of user/group is not important but it has to have uid:gid as 999:999
+
+### MacOSX Notes
+
+To install PG client Tools
+
+```sh
+brew doctor
+brew update
+brew install libpq
+
+psql --host localhost --port 5432 --password --username dbuser --dbname dbname
+```
+To create a user and group with a specific ID (`999:999`) on macOS, you can use the following steps. Note that you'll need administrator (sudo) privileges.
+
+#### 1. **Create a Group with a Specific GID (999):**
+To create a group with the `GID` of `999`, use the `sudo` command with `dscl` (Directory Service command-line utility):
+
+```bash
+sudo dscl . -create /Groups/postgres
+sudo dscl . -create /Groups/postgres PrimaryGroupID 999
+```
+
+#### 2. **Create a User with a Specific UID (999):**
+To create a user with a `UID` of `999`, follow these steps:
+
+```bash
+sudo dscl . -create /Users/postgres
+sudo dscl . -create /Users/postgres UserShell /bin/bash
+sudo dscl . -create /Users/postgres RealName "PostgreSQL"
+sudo dscl . -create /Users/postgres UniqueID 999
+sudo dscl . -create /Users/postgres PrimaryGroupID 999
+sudo dscl . -create /Users/postgres NFSHomeDirectory /opt/postgres
+```
+
+#### 3. **Set a Password for the User:**
+To set a password for the new user:
+
+```bash
+sudo passwd postgres
+
+################################### WARNING ###################################
+# This tool does not update the login keychain password.                      #
+# To update it, run `security set-keychain-password` as the user in question, #
+# or as root providing a path to such user's login keychain.                  #
+###############################################################################
+```
+
+#### 4. **Create a Home Directory (Optional):**
+If you want to create the home directory for the user:
+
+```bash
+sudo mkdir /opt/postgres
+sudo chown postgres:postgres  /opt/postgres
+```
+
+This creates a home directory at ` /opt/postgres` and sets the correct ownership.
+
 ## Connecting
 
 ## List Databases
