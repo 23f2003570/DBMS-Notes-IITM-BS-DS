@@ -114,6 +114,10 @@ CREATE TABLE users (
 - Whenever you insert a new user into the `users` table, PostgreSQL automatically generates a unique `id` value.
 - **DO NOT SPECIFY VALUE OF A SERIAL**. Let the DB control that! When unspecified, Database will insert as `id = id + 1`
 
+
+## PostgreSQL Commands
+1. \timing [on|off]       toggle timing of commands (currently off)
+
 ## Tasks
 
 1. Create a table called `users`
