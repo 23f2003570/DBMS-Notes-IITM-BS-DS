@@ -1886,6 +1886,53 @@ SELECT * FROM books;
 
 You should see that all books by Jane Austen have been removed.
 
+##### One more example..
+
+```SQL
+CREATE TABLE multiple(
+    first INTEGER,
+    second INTEGER,
+    PRIMARY KEY (first),
+    FOREIGN KEY (second)
+        REFERENCES multiple ON DELETE CASCADE);
+
+work=# insert into multiple values (1,1);
+INSERT 0 1
+Time: 6.942 ms
+work=# insert into multiple values (2,1);
+INSERT 0 1
+Time: 7.030 ms
+work=# insert into multiple values (4,2);
+INSERT 0 1
+Time: 5.747 ms
+work=# insert into multiple values (3,4);
+INSERT 0 1
+Time: 5.978 ms
+
+work=# select * from multiple;
+ first | second
+-------+--------
+     1 |      1
+     2 |      1
+     4 |      2
+     3 |      4
+(4 rows)
+
+work=# DELETE FROM multiple WHERE first=1;
+DELETE 1
+Time: 18.484 ms
+
+work=# select * from multiple;
+ first | second
+-------+--------
+(0 rows)
+
+Time: 0.648 ms
+
+/* Notice how CASCADING deletes other relations ! */
+```
+
+
 #### Cascading Updates
 
 You can also define cascading actions for updates. For example, if you wanted to change the `author_id` of all books when an author’s ID changes, you could define it like this:
@@ -3687,3 +3734,57 @@ After executing the update, the `salary_audit` table will contain a record of th
 #### 10. **Limit Trigger Usage for High-Frequency Tables**
 
 - **Be Cautious with Frequent Operations**: If a table experiences high insert/update/delete rates, be cautious with triggers, as they can introduce overhead. Consider alternatives like periodic batch jobs for certain tasks.
+
+### Row Level Triggers
+
+In PostgreSQL, the `NEW` keyword is used within row-level triggers and certain functions to reference the new state of a row being inserted or updated. Here's how it works in different contexts:
+
+#### 1. Row-Level Triggers
+
+When you create a trigger for `INSERT` or `UPDATE`, you can use `NEW` to access the new values of the row:
+
+- **INSERT Trigger:** `NEW` contains the values of the row that is being inserted.
+- **UPDATE Trigger:** `NEW` contains the updated values of the row.
+
+##### Example
+
+Suppose you have a table `employees` and you want to log changes to a `salary` column:
+
+```sql
+CREATE TABLE employees (
+    id SERIAL PRIMARY KEY,
+    name TEXT,
+    salary NUMERIC
+);
+
+CREATE TABLE salary_changes (
+    employee_id INT,
+    old_salary NUMERIC,
+    new_salary NUMERIC,
+    change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE OR REPLACE FUNCTION log_salary_change() 
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'UPDATE' THEN
+        INSERT INTO salary_changes (employee_id, old_salary, new_salary)
+        VALUES (NEW.id, OLD.salary, NEW.salary);
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_salary_change
+AFTER UPDATE ON employees
+FOR EACH ROW EXECUTE FUNCTION log_salary_change();
+```
+
+In this example:
+
+- `NEW.id` accesses the ID of the employee after the update.
+- `OLD.salary` accesses the salary before the update.
+
+#### 2. Functions with `NEW`
+
+In functions that are invoked by triggers, you can directly use the `NEW` keyword as described above. However, you can't use `NEW` in standalone SQL functions not associated with a trigger.
