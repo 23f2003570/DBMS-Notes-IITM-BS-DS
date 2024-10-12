@@ -283,11 +283,11 @@ The **Turing Steps** are specific actions that define how a Turing machine opera
 
 #### Common Relational Operators in RDBMS:
 
-- `AND` operator is written as $\bigwedge$
-  - $\sigma A=B\bigwedge D > 4$
+- `AND` operator is written as $\land$
+  - $\sigma A=B\land D > 4$
     - `SELECT * FROM TABLE WHERE A=B AND D > 4`
-- `OR` operator is written as $\bigvee$
-  -  $\sigma A=B\bigvee D > 4$
+- `OR` operator is written as $\lor$
+  -  $\sigma A=B\lor D > 4$
      -  `SELECT * FROM TABLE WHERE A=B OR D > 4`
 -  Renaming a TABLE
    -  $\rho_{X}(E)$
@@ -296,9 +296,9 @@ The **Turing Steps** are specific actions that define how a Turing machine opera
    -  $\sigma_{A = C}(r \times s)$
    -  SELECT WHERE A = C the cartesian product $r \times s$
 -  Natural Join/Inner Join
-   -  $\pi_{A,r.B,C,r.d, E}(\sigma_{r.B = s.B}\bigwedge r.D=s.D (r \times s))$
+   -  $\pi_{A,r.B,C,r.d, E}(\sigma_{r.B = s.B}\land r.D=s.D (r \times s))$
       -  `SELECT a, r.B, C, r.D WHERE r.B = s.B AND r.D = s.D` from the cartesian product $r \times s$
--  $\displaystyle \large \pi \neg_{(A=B \bigvee C > 2)}(r)$
+-  $\displaystyle \large \pi \neg_{(A=B \lor C > 2)}(r)$
    -  This means find all records where A == B OR C > 2 and then find its inverse
 
 **NOTE** if 2 relations are not UNION compatible, then you cannot do INTERSECTION, UNION and DIFFERENCE. But you can surely do CARTESIAN PRODUCT

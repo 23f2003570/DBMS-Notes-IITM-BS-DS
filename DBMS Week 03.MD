@@ -818,7 +818,7 @@ In this syntax:
 
 In PostgreSQL (and SQL in general), **joins** are used to combine rows from two or more tables based on a related column between them. There are several types of joins, and each serves a different purpose when querying data. Let’s explore the main types of joins with examples:
 
-### 1. **INNER JOIN**
+### 1. **INNER JOIN** ($R \Join S)$
 
 ![INNER JOIN](imgs/11-inner-join-venn.png)
 
@@ -870,7 +870,7 @@ Notice that Charlie, who belongs to department `103`, is excluded because there 
    1. Natural Join skips common columns.
 ---
 
-### 2. **LEFT JOIN (LEFT OUTER JOIN)**
+### 2. **LEFT JOIN (LEFT OUTER JOIN) ($R \leftarrow S$)**
 
 ![LEFT OUTER JOIN](imgs//12-left-outerjoin-venn.png)
 
@@ -904,9 +904,9 @@ This time, Charlie is included, but with a `NULL` value for the department name 
 
 ---
 
-### 3. **RIGHT JOIN (RIGHT OUTER JOIN)**
+### 3. **RIGHT JOIN (RIGHT OUTER JOIN) ($R \rightarrow S$)**
 
-![RIGHT OUTER JOIN](image.png)
+![RIGHT OUTER JOIN](./imgs/13-right-outer-join-venn.png)
 
 A `RIGHT JOIN` is the opposite of a left join. It returns all rows from the right table (table2) and the matching rows from the left table (table1). If there is no match, NULL values are returned for columns from the left table.
 
@@ -946,9 +946,9 @@ The IT department appears, even though no employee belongs to it, with a `NULL` 
 
 ---
 
-### 4. **FULL OUTER JOIN**
+### 4. **FULL OUTER JOIN** ($R \Leftrightarrow S$)
 
-![FULL OUTER JOIN](imgs/14-full-outer-join-venn.png)
+![FULL OUTER JOIN](./imgs/13-right-outer-join-venn.png)
 
 A `FULL OUTER JOIN` returns all rows when there is a match in either table. If there is no match, NULL values will be used for non-matching columns from both tables.
 
@@ -980,7 +980,7 @@ This query returns all employees and all departments, even if there are no match
 
 ---
 
-### 5. **CROSS JOIN**
+### 5. **CROSS JOIN** ($R \times S$)
 A `CROSS JOIN` returns the Cartesian product of the two tables, meaning it combines all rows from the first table with all rows from the second table. Output Row size will be $m \times n$
 
 #### Syntax:
@@ -1017,7 +1017,7 @@ Each employee is paired with every department.
 
 ---
 
-### 6. **SELF JOIN**
+### 6. **SELF JOIN** ($R \Join S$)
 A `SELF JOIN` is a regular join, but the table is joined with itself. This is useful when you need to compare rows within the same table.
 
 #### Example:
@@ -1065,7 +1065,7 @@ university=# SELECT * FROM department d INNER JOIN instructor AS i ON d.dept_nam
 (3 rows)
 
 ```
-#### NATURAL JOIN
+#### NATURAL JOIN ($R \Join S$)
 
 Note there is only one `dept_name` column
 

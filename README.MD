@@ -16,3 +16,8 @@ My notes for DBMS course **BSCCS2001**
 |10|Transactions|
 |11|Backup and Recovery|
 |12|Query Optimization and Conclusion|
+
+
+## Datasets to use
+
+- [Pagila](https://github.com/devrimgunduz/pagila)
