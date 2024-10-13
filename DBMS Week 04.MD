@@ -966,3 +966,269 @@ We can denote the equivalence as follows:
 #### EQ NATURAL JOIN
 
 ![Equivalence Natural Join](imgs/31-equivalence-natural-join.png)
+
+
+
+## [L4.3: Entity-Relationship Model/1 (31:39)](https://youtu.be/EGAQdgim3IA)
+
+### Design Process for Databases
+
+Designing a PostgreSQL database from system design specifications involves several key steps.
+
+#### 1. **Understand Requirements**
+   - **Action**: Gather and analyze the system requirements.
+   - **Example**: For an e-commerce platform, requirements might include managing products, customers, and orders.
+
+#### 2. **Identify Entities**
+   - **Action**: Determine the main entities based on requirements.
+   - **Example**: 
+     - **Product**
+     - **Customer**
+     - **Order**
+
+#### 3. **Define Attributes for Each Entity**
+   - **Action**: List the attributes that describe each entity.
+   - **Example**: 
+     - **Product**: `ProductID`, `Name`, `Description`, `Price`, `StockQuantity`
+     - **Customer**: `CustomerID`, `Name`, `Email`, `Address`
+     - **Order**: `OrderID`, `OrderDate`, `CustomerID`, `TotalAmount`
+
+#### 4. **Identify Relationships Between Entities**
+   - **Action**: Define how entities are related to each other.
+   - **Example**:
+     - A **Customer** can place multiple **Orders** (1:N).
+     - An **Order** can include multiple **Products** (N:M).
+
+#### 5. **Determine Cardinalities**
+   - **Action**: Specify the cardinality for relationships.
+   - **Example**: 
+     - **Customer** to **Order**: 1:N
+     - **Order** to **Product**: N:M (requires a join table).
+
+#### 6. **Create the ER Diagram**
+   - **Action**: Draw an ER diagram to visualize entities, attributes, and relationships.
+   - **Example**: 
+     - Represent **Customer**, **Order**, and **Product** as rectangles.
+     - Connect them with lines indicating relationships and cardinalities.
+
+#### 7. **Translate the ER Diagram into Tables**
+   - **Action**: Convert the entities and relationships into tables and define primary/foreign keys.
+   - **Example**:
+     ```sql
+     CREATE TABLE Customer (
+         CustomerID SERIAL PRIMARY KEY,
+         Name VARCHAR(100),
+         Email VARCHAR(100) UNIQUE,
+         Address TEXT
+     );
+
+     CREATE TABLE Product (
+         ProductID SERIAL PRIMARY KEY,
+         Name VARCHAR(100),
+         Description TEXT,
+         Price DECIMAL(10, 2),
+         StockQuantity INT
+     );
+
+     CREATE TABLE "Order" (
+         OrderID SERIAL PRIMARY KEY,
+         OrderDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+         CustomerID INT,
+         TotalAmount DECIMAL(10, 2),
+         FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID)
+     );
+
+     CREATE TABLE Order_Product (
+         OrderID INT,
+         ProductID INT,
+         Quantity INT,
+         PRIMARY KEY (OrderID, ProductID),
+         FOREIGN KEY (OrderID) REFERENCES "Order"(OrderID),
+         FOREIGN KEY (ProductID) REFERENCES Product(ProductID)
+     );
+     ```
+
+#### 8. **Normalization**
+   - **Action**: Ensure the database schema is normalized to eliminate redundancy.
+   - **Example**: 
+     - Check that data is structured into separate tables and that relationships are correctly represented without duplicate data.
+
+#### 9. **Implement Database Schema**
+   - **Action**: Execute the SQL statements to create the tables in PostgreSQL.
+   - **Example**: Run the SQL commands created in step 7 in a PostgreSQL client.
+
+#### 10. **Test the Database**
+   - **Action**: Insert sample data and perform queries to ensure everything functions correctly.
+   - **Example**: 
+     ```sql
+     INSERT INTO Customer (Name, Email, Address) VALUES ('John Doe', 'john@example.com', '123 Elm St');
+     INSERT INTO Product (Name, Description, Price, StockQuantity) VALUES ('Laptop', 'High-performance laptop', 1200.00, 10);
+     INSERT INTO "Order" (OrderDate, CustomerID, TotalAmount) VALUES (CURRENT_TIMESTAMP, 1, 1200.00);
+     INSERT INTO Order_Product (OrderID, ProductID, Quantity) VALUES (1, 1, 1);
+     ```
+
+#### 11. **Documentation**
+   - **Action**: Document the schema design, including table structures, relationships, and any business rules.
+   - **Example**: Create a document outlining each table, its purpose, and relationships.
+
+### Abstraction in ER Models
+
+Abstraction in Entity-Relationship (ER) models refers to the simplification of complex real-world scenarios into manageable representations that focus on the essential components of the system. Here’s a detailed look at how abstraction works in ER models:
+
+#### 1. **Entity Abstraction**
+   - **Definition**: An entity is a distinct object or thing in the real world that is represented in the database.
+   - **Example**: Instead of detailing every attribute of a student (like age, grades, hobbies), you represent the **Student** as a single entity with relevant attributes (e.g., **StudentID**, **Name**).
+
+#### 2. **Attribute Abstraction**
+   - **Definition**: Attributes are the properties or characteristics of entities. Abstraction helps in selecting only relevant attributes to avoid clutter.
+   - **Example**: For a **Product** entity, you might only include essential attributes like **ProductID**, **Name**, and **Price**, while omitting less critical details like supplier information at this stage.
+
+#### 3. **Relationship Abstraction**
+   - **Definition**: Relationships define how entities are related to each other. Abstraction allows focusing on significant relationships.
+   - **Example**: Instead of detailing every type of relationship (e.g., customer feedback, warranty claims), you might only represent the key relationship: **Customer** **purchases** **Product**.
+
+#### 4. **Generalization and Specialization**
+   - **Generalization**: This is the process of abstracting common characteristics from multiple entities into a more generalized entity.
+     - **Example**: You might generalize **Car** and **Truck** into a single entity **Vehicle** with attributes like **VehicleID**, **Make**, and **Model**.
+   - **Specialization**: The opposite process, where you create sub-entities from a general entity.
+     - **Example**: Starting from **Employee**, you could specialize into **FullTimeEmployee** and **PartTimeEmployee** with specific attributes relevant to each type.
+
+#### 5. **Aggregation**
+   - **Definition**: This allows for treating a relationship set as a higher-level entity, which can simplify complex models.
+   - **Example**: If you have a relationship where **Course** is taught by **Instructor** and taken by **Student**, you can aggregate these into a single entity **CourseOffering** that encapsulates both relationships.
+
+#### 6. **Views**
+   - **Definition**: In ER models, views can represent simplified subsets of data or relationships that are relevant to specific users or applications.
+   - **Example**: A view for a library system might show only the **Book** and **Author** entities, ignoring other entities like **Publisher** and **Member** for a specific query.
+
+#### 7. **Diagram Simplification**
+   - **Definition**: ER diagrams can become complex. Abstraction helps focus on key entities and relationships, simplifying the visual representation.
+   - **Example**: Instead of showing every detail of each entity, an abstracted ER diagram might only highlight core entities and their primary relationships.
+### Terminology
+
+1. An **Entity** is an object that exists and is distinguishable from other objects. Example Person, Company, Event Plant. Entity is represented with a set of attributes
+   
+2. **Entity Set** is a set of entities of the same type. Example Set of Persons, Companies, Events, Plants
+3. Subset of attributes form primary key of the `entity set`
+4. A **Relationship** is an association between several entities
+5. A **Relationship Set** is a Mathematical set among 2 or more entities.
+
+![ER Attributes](imgs/32-er-attributes.png)
+
+![Relationship Sets](imgs/33-relationship-sets.png)
+
+### Weak Entity Sets
+
+Weak entity sets are a fundamental concept in Entity-Relationship (ER) modeling. A weak entity set is an entity that cannot be uniquely identified by its own attributes alone and relies on a "strong" (or "owner") entity to ensure its uniqueness. Here's a breakdown of weak entity sets with examples:
+
+#### Characteristics of Weak Entity Sets
+
+1. **No Primary Key**: Weak entities do not have a primary key that uniquely identifies them. Instead, they are identified by their relationship with a strong entity.
+2. **Partial Key**: Weak entities have a partial key, which is an attribute or set of attributes that can distinguish weak entities within a particular strong entity context.
+3. **Existence Dependency**: Weak entities depend on the existence of a strong entity; they cannot exist independently.
+4. An entity set that is not a weak entity set is termed as a strong entity set.
+5. Every weak entity must be associated with an identifying entity
+
+
+#### Example Scenario
+
+Let’s consider a scenario involving a **Project** and **Task** in a project management system:
+
+##### Strong Entity: Project
+
+- **Attributes**:
+  - `ProjectID` (Primary Key)
+  - `ProjectName`
+  - `StartDate`
+
+##### Weak Entity: Task
+
+- **Attributes**:
+  - `TaskID` (Partial Key)
+  - `Description`
+  - `Status`
+
+NOTE: The weak entity needs to have a relationship with the strong entity. This is called **Identifying Relationship**
+
+##### Relationships
+
+- A **Task** is associated with exactly one **Project**, but a **Project** can have multiple **Tasks**.
+- The uniqueness of a **Task** is determined by its `TaskID` in conjunction with the `ProjectID` of the associated **Project**.
+
+#### ER Diagram Representation
+
+1. **Project** is represented as a rectangle.
+2. **Task** is represented as a double rectangle (indicating it is a weak entity).
+3. The relationship between **Project** and **Task** is shown with a diamond, labeled "has" or "includes".
+4. The partial key for **Task** is indicated, and the connecting line between **Project** and **Task** shows the dependency.
+
+#### Example Data
+
+**Project Table:**
+
+| ProjectID | ProjectName  | StartDate  |
+|-----------|---------------|------------|
+| 1         | Build Website | 2024-01-01 |
+| 2         | Develop App   | 2024-02-01 |
+
+**Task Table:**
+
+| TaskID | Description            | Status   | ProjectID |
+|--------|------------------------|----------|-----------|
+| 101    | Design Homepage        | In Progress | 1         |
+| 102    | Implement Backend      | Not Started | 1         |
+| 201    | UI/UX Design           | Completed | 2         |
+| 202    | Setup Database         | In Progress | 2         |
+
+#### Key Points
+
+- **Identification**: A task is uniquely identified by both `TaskID` and `ProjectID`. For example, `TaskID 101` belongs to `ProjectID 1`, making it unique within that context.
+- **Existence Dependency**: A **Task** cannot exist without a corresponding **Project**. If the **Project** is deleted, all associated **Tasks** must also be removed.
+
+### Discriminator
+
+A **discriminator** in the context of relational databases, especially when dealing with **weak entity sets** or **inheritance hierarchies** in an Entity-Relationship (ER) model, is an attribute that helps to distinguish between different subtypes or instances of an entity.
+
+#### Definition
+
+- **Discriminator**: An attribute that uniquely identifies a specific subtype of a superclass (or parent entity). It indicates which subclass an instance belongs to, especially in cases of polymorphism where a parent entity can have multiple child entities.
+
+#### Key Characteristics
+
+1. **Identification**: The discriminator attribute allows the database to determine which specific subtype an entity instance corresponds to.
+2. **Part of the Key**: In the case of weak entities, the discriminator is often used in conjunction with the primary key of the strong entity to form a composite key.
+3. **Subclassing**: It is commonly used in scenarios involving inheritance in object-oriented designs, where a base class has multiple derived classes.
+
+#### Example Scenario
+
+Consider a university database with the following entities:
+
+- **Person** (superclass)
+  - Attributes: `PersonID`, `Name`, `Email`
+  
+- **Student** (subclass)
+  - Attributes: `StudentID`, `Major`, `Discriminator` (e.g., value = 'Student')
+
+- **Instructor** (subclass)
+  - Attributes: `InstructorID`, `Department`, `Discriminator` (e.g., value = 'Instructor')
+
+#### Implementation
+
+In the `Person` table, you could have a `Discriminator` column that indicates whether the person is a `Student` or an `Instructor`.
+
+**Person Table Example:**
+
+| PersonID | Name       | Email               | Discriminator |
+|----------|------------|---------------------|---------------|
+| 1        | Alice      | alice@example.com    | Student       |
+| 2        | Bob        | bob@example.com      | Instructor     |
+
+#### Usage in Queries
+
+The discriminator allows for specific queries to filter data based on the subtype:
+
+```sql
+SELECT * FROM Person WHERE Discriminator = 'Student';
+```
+
+A discriminator is a vital attribute used in relational databases to differentiate between various subtypes of a generalized entity. It facilitates the implementation of inheritance and polymorphism in data modeling, helping to manage complexity and maintain data integrity within the database structure.
