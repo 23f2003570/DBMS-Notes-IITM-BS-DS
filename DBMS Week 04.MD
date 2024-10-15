@@ -1232,3 +1232,342 @@ SELECT * FROM Person WHERE Discriminator = 'Student';
 ```
 
 A discriminator is a vital attribute used in relational databases to differentiate between various subtypes of a generalized entity. It facilitates the implementation of inheritance and polymorphism in data modeling, helping to manage complexity and maintain data integrity within the database structure.
+
+
+## [Mod19: L4.4: Entity-Relationship Model/2 (29:12)](https://youtu.be/In_PYLgZvKo)
+
+### Recap: Logical Parts in a Relational Database
+
+Certainly! A relational database is structured to recognize relationships among data. The core logical parts or relations in a relational database include:
+
+#### 1. **Tables (Relations)**
+   - **Definition**: A table is a collection of related data entries and consists of rows and columns.
+   - **Example**: A "Customers" table might have columns for `CustomerID`, `Name`, `Email`, and `Phone`.
+
+#### 2. **Rows (Records/Tuples)**
+   - **Definition**: Each row in a table represents a single record or data entry.
+   - **Example**: A row in the "Customers" table might look like this: `1, John Doe, johndoe@example.com, 123-456-7890`.
+
+#### 3. **Columns (Attributes/Fields)**
+   - **Definition**: Columns define the type of data stored in the table and represent attributes of the data.
+   - **Example**: In the "Customers" table, `CustomerID` could be an integer, `Name` a string, and `Email` a string.
+
+#### 4. **Primary Keys**
+   - **Definition**: A primary key is a unique identifier for a record in a table, ensuring that no two rows have the same key.
+   - **Example**: `CustomerID` could be the primary key in the "Customers" table.
+
+#### 5. **Foreign Keys**
+   - **Definition**: A foreign key is an attribute that creates a link between two tables, referring to the primary key in another table.
+   - **Example**: In an "Orders" table, a `CustomerID` foreign key would link each order to the corresponding customer in the "Customers" table.
+
+#### 6. **Relationships**
+   - **Types of Relationships**:
+     - **One-to-One**: Each record in Table A corresponds to one record in Table B.
+       - **Example**: A "User" table and a "Profile" table, where each user has exactly one profile.
+     - **One-to-Many**: A record in Table A can relate to multiple records in Table B.
+       - **Example**: A "Customer" can have many "Orders".
+     - **Many-to-Many**: Records in Table A can relate to multiple records in Table B and vice versa.
+       - **Example**: A "Students" table and a "Courses" table, where students can enroll in multiple courses and each course can have multiple students (often managed through a junction table).
+
+#### 7. **Indexes**
+   - **Definition**: An index improves the speed of data retrieval operations on a database table at the cost of additional space and potential slower writes.
+   - **Example**: An index on the `Email` column in the "Customers" table would allow faster searches for customer records by email.
+
+#### 8. **Views**
+   - **Definition**: A view is a virtual table that is based on the result set of a SQL query. It does not store data itself but presents data from one or more tables.
+   - **Example**: A view called "ActiveCustomers" might display only customers with active accounts by filtering the "Customers" table based on certain criteria.
+
+#### 9. **Constraints**
+   - **Definition**: Constraints enforce rules on data in the table to maintain accuracy and integrity.
+   - **Types of Constraints**:
+     - **NOT NULL**: Ensures that a column cannot have a NULL value.
+     - **UNIQUE**: Ensures that all values in a column are different.
+     - **CHECK**: Ensures that all values in a column satisfy a specific condition.
+   - **Example**: A `CHECK` constraint might ensure that the `Email` field contains the `@` symbol.
+
+#### 10. **Transactions**
+   - **Definition**: A transaction is a sequence of operations performed as a single logical unit of work. Transactions follow the ACID properties (Atomicity, Consistency, Isolation, Durability).
+   - **Example**: Transferring money from one bank account to another would require two operations (debiting one account and crediting another) to either both succeed or both fail.
+### Entities
+
+#### 1. **Entity**
+An **entity** is a single object or thing in the real world that can be distinctly identified. For example, a specific customer or product.
+
+- **Example**: 
+  - An individual customer: **Customer A**
+  - An individual product: **Product X**
+
+**Visual Representation**:
+```
++---------------------+
+|      Customer       |
+|---------------------|
+| CustomerID: 1       |  <-- Entity: Customer A
+| Name: John Doe      |
+| Email: johndoe@example.com |
++---------------------+
+```
+
+#### 2. **Entity Set**
+An **entity set** is a collection of similar entities. It represents all the entities of a particular type.
+
+- **Example**: 
+  - The entity set of all customers.
+
+**Visual Representation**:
+```
++---------------------+
+|     Customers       |
+|---------------------|
+| CustomerID: 1      |
+| Name: John Doe      |
+| Email: johndoe@example.com |
+|---------------------|
+| CustomerID: 2      |
+| Name: Jane Smith    |
+| Email: janesmith@example.com |
++---------------------+
+```
+
+- **Entity**: A single instance (e.g., "Customer A").
+- **Entity Set**: A collection of entities of the same type (e.g., all customers).
+
+In a diagram, you might represent entities as boxes or circles, while the entity set can be shown as a larger box that contains multiple entity representations.
+
+#### Additional Example
+
+If we add a **Product** entity set, it might look like this:
+
+#### Entity Set for Products
+```
++---------------------+
+|      Products       |
+|---------------------|
+| ProductID: 101     |
+| Name: Widget A      |
+| Price: $25.00       |
+|---------------------|
+| ProductID: 102     |
+| Name: Widget B      |
+| Price: $30.00       |
++---------------------+
+```
+
+### UML Diagrams
+#### Relationships
+
+![Relationships](imgs/34-uml-relations.png)
+
+1. Here `Advisor` is a relationship between `Instructor` and `Student`.
+2. `Advisor` has an attribute called `date`.
+3. This means `Advisor` will have *Instructor.ID* and *Student.ID* as foreign keys
+4. Note that Date has a dotted line. This means date is an attribute of `Advisor`
+   1. If the line was a solid line, then `date` would be an entity or table.
+   2. `date` would means an entity set with no attribute.
+
+
+Certainly! An **Entity-Relationship (ER) diagram** visually represents the data structure and relationships in a database. Here’s how **Entity Sets** are depicted and their properties explained in point form.
+
+### Entity Sets in an ER Diagram
+
+- **Representation**: 
+  - An entity set is usually represented as a rectangle.
+  - Inside the rectangle, the name of the entity set is written (e.g., "Customer," "Product").
+
+#### Example ER Diagram Snippet
+```
++------------------+     +------------------+
+|    Customer      |     |     Product      |
++------------------+     +------------------+
+| CustomerID (PK)  |     | ProductID (PK)   |
+| Name              |     | Name             |
+| Email             |     | Price            |
++------------------+     +------------------+
+```
+
+### Properties of Entity Sets
+
+1. **Unique Identification**:
+   - Each entity set has a **primary key (PK)** that uniquely identifies each entity within that set.
+
+2. **Attributes**:
+   - Entity sets have **attributes**, which describe the properties of the entities. For example, a "Customer" entity might have attributes like `CustomerID`, `Name`, and `Email`.
+
+3. **Multiplicity**:
+   - An entity set can have a **cardinality** that indicates the number of instances of one entity that can be associated with instances of another entity.
+   - Examples include one-to-one, one-to-many, and many-to-many relationships.
+
+4. **Relationships**:
+   - Entity sets can be related to one another through **relationships**, which can also be depicted in the ER diagram using diamonds.
+
+5. **Weak Entity Sets**:
+   - Some entity sets can be **weak**, meaning they do not have a primary key and depend on another entity set for their identification. They are typically represented with a double rectangle.
+
+6. **Participation Constraints**:
+   - An entity set may have constraints that specify whether all entities must participate in a relationship (total participation) or if participation is optional (partial participation).
+
+7. **Inheritance**:
+   - Entity sets can be organized into a hierarchy where a child entity set inherits attributes from a parent entity set.
+
+8. **Attributes Types**:
+   - Attributes can be:
+     - **Simple**: Cannot be divided (e.g., `Name`).
+     - **Composite**: Can be divided into sub-parts (e.g., `Address` could be divided into `Street`, `City`, `Zip`).
+     - **Derived**: Can be calculated from other attributes (e.g., `Age` can be derived from `Date of Birth`).
+
+### ER-Diagram Cheat Sheet
+
+![ER-Cheat Sheet](imgs/35-er-cheatsheet.png)
+![ER-Cheat Sheet](imgs/36-er-cheat-sheet.png)
+
+![ER-Notations](imgs/37-er-notations.png)
+
+### Roles
+
+![Roles](imgs/38-roles.png)
+
+Basically *Prof. PPD* is saying is
+1. `prereq` is a course because It has all properties of a course.
+2. `prereq_id` is the same as `course_id`
+
+
+### Cardinality Constraints
+
+Cardinality constraints in Entity-Relationship (ER) diagrams specify the number of instances of one entity that can or must be associated with instances of another entity. These constraints are crucial for defining the relationships between different entities in a database.
+
+#### Types of Cardinality Constraints
+
+General rules:
+- `<` or `>` means **one**
+- `|` means **MANY**
+
+1. **One-to-One (1:1)**
+   - **Description**: An instance of Entity A can be associated with only one instance of Entity B, and vice versa.
+   - **Example**: A person and their passport; each person can have one passport, and each passport is assigned to one person.
+   - **Diagram Representation**:
+     ```
+     +--------+     +--------+
+      Person <-----> Passport
+     +--------+     +--------+
+     ```
+   - Note `<----->` means 1-1
+
+2. **One-to-Many (1:N)**
+   - **Description**: An instance of Entity A can be associated with multiple instances of Entity B, but an instance of Entity B can be associated with only one instance of Entity A.
+   - **Example**: A customer and their orders; one customer can place many orders, but each order belongs to one customer.
+   - **Diagram Representation**:
+     ```
+     +--------+     +--------+
+     Customer <-----|  Order 
+     +--------+     +--------+
+     ```
+
+3. **Many-to-One (N:1)**
+   - **Description**: Multiple instances of Entity A can be associated with one instance of Entity B, but each instance of Entity B can only relate to one instance of Entity A.
+   - **Example**: Many employees work in one department; multiple employees can belong to a single department, but each employee belongs to only one department.
+   - **Diagram Representation**:
+     ```
+     +--------+     +----------+
+      Employee |-----> Department
+     +--------+     +----------+
+     ```
+
+4. **Many-to-Many (M:N)**
+   - **Description**: Instances of Entity A can be associated with multiple instances of Entity B, and instances of Entity B can also be associated with multiple instances of Entity A.
+   - **Example**: Students and courses; students can enroll in multiple courses, and each course can have multiple students.
+   - **Diagram Representation**:
+     ```
+     +--------+     +--------+
+       Student |-----| Course 
+     +--------+     +--------+
+     ```
+
+#### Notation in ER Diagrams
+
+- **Lines and Crow’s Foot Notation**: Cardinality is often represented using lines connecting entities, with symbols indicating the type of relationship.
+  - A single line represents a one-to-one relationship.
+  - A line with a crow’s foot (three prongs) indicates a one-to-many relationship.
+  - A double crow’s foot indicates a many-to-many relationship.
+
+#### Participation Constraints
+
+Cardinality constraints can also be complemented by **participation constraints**:
+- **Total Participation**: All instances of an entity must participate in the relationship (represented by a double line).
+- **Partial Participation**: Some instances of an entity may not participate in the relationship (represented by a single line).
+
+Cardinality constraints are essential for accurately modeling the relationships between entities in an ER diagram. They help define how many instances of one entity relate to instances of another, guiding database design and ensuring data integrity.
+
+#### **Prof. PPD's Notes** VVIP!
+##### 1-1 Relations
+
+![1-1 Relation](imgs/39-cardinality-constraints-1-1.png)
+- 1 Advisor can advise 1 student
+
+##### 1-Many Relations
+
+![1-Many Relations](imgs/40-cardinality-constraints-1-many.png)
+- One Advisor can advice many students
+
+##### Many-1 Relations
+
+![Many-1](imgs/41-cardinality-many-1.png)
+- Many or 0 advisors can advice only 1 student
+##### Many-Many Relations
+
+- Many advisors can advice many students
+
+*Always focus on the relationship first*
+
+### ER Participation
+
+In Entity-Relationship (ER) modeling, **participation constraints** specify whether all or only some instances of an entity set are involved in a relationship. They provide critical information about how entities relate to one another. Here are the key principles of participation constraints:
+
+#### Types of Participation Constraints
+
+1. **Total Participation**
+   - Denoted by a **Double Line**
+   - **Definition**: Every instance of the entity set must participate in the relationship.
+   - **Characteristics**:
+     - Represented by a **double line** connecting the entity to the relationship in an ER diagram.
+     - Indicates that there cannot be an instance of the entity that does not relate to at least one instance of the associated entity.
+   - **Example**: In a university database, if every student must enroll in at least one course, the relationship between "Students" and "Courses" would exhibit total participation for the "Students" entity.
+
+   **Diagram Representation**:
+   ```
+   +---------+       +---------+
+   | Student |=======| Enrolls |
+   +---------+       +---------+
+   ```
+
+2. **Partial Participation**
+   - Denoted by a **Single Line**
+   - **Definition**: Some instances of the entity set may not participate in the relationship.
+   - **Characteristics**:
+     - Represented by a **single line** connecting the entity to the relationship in an ER diagram.
+     - Indicates that it is acceptable for some instances of the entity to not have any associated instances in the relationship.
+   - **Example**: In a company database, not all employees may be assigned to a project. Thus, the relationship between "Employees" and "Projects" would exhibit partial participation for "Employees."
+
+   **Diagram Representation**:
+   ```
+   +---------+       +---------+
+   | Employee|-------| Assigned|
+   +---------+       +---------+
+   ```
+
+- **Total Participation**: 
+  - Indicates a mandatory relationship for all instances of the entity.
+  - Often used for entities that must fulfill a specific role in a relationship (e.g., a "User" must have an "Account").
+
+- **Partial Participation**:
+  - Indicates that participation in the relationship is optional for some instances of the entity.
+  - Used for entities where involvement in a relationship is not mandatory (e.g., an "Employee" may not be assigned to any project).
+
+**Note**
+
+Understanding participation constraints is vital for:
+- **Data Integrity**: Ensuring that the relationships among entities accurately reflect real-world rules.
+- **Database Normalization**: Helping to organize data to minimize redundancy and improve data integrity.
+- **Query Design**: Facilitating the creation of efficient queries that consider whether certain data will always be present or may be absent.
+
+
+`WIP: Stuck at 09:04` Continue tomorrow.
