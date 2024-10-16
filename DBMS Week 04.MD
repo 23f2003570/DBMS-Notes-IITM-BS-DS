@@ -1570,4 +1570,435 @@ Understanding participation constraints is vital for:
 - **Query Design**: Facilitating the creation of efficient queries that consider whether certain data will always be present or may be absent.
 
 
-`WIP: Stuck at 09:04` Continue tomorrow.
+![TOTAL Participation](imgs/42-total-participation.png)
+
+#### Notation for Entities
+
+![Notations](imgs/43-notations.png)
+1. Write `Composite Attributes`
+2. Write `Component Attribute` with a tab
+3. The curly braces `{}` indicates a `Multi Valued Attribute`
+4. The small braces `()` indicates that age is `derived attribute`. Its a function and has to be computed from `date_of_birth`
+
+![University ER Diagram](imgs/45-university-er.png)
+
+
+#### Notation for Weak Entity Sets
+
+![Weak Entity Sets](imgs/44-notation-weak-entity.png)
+
+1. The Discriminator is the underlined attributes. `sec_id`, `semester`, `year`
+2. the primary key for `sec_course` will be
+   1. course_id
+   2. sec_id
+   3. semester
+   4. year
+   
+A weak entity set is an entity that cannot be uniquely identified by its own attributes alone. Instead, it relies on a "strong" (or "owner") entity set for its identification. 
+
+##### Example Scenario
+
+Let's consider a simple example with two entities: `Customer` (strong entity) and `Order` (weak entity). 
+
+- A `Customer` has attributes like `customer_id` (primary key), `name`, and `email`.
+- An `Order` has attributes like `order_id` (not enough to uniquely identify an order) and `customer_id` (foreign key from `Customer`).
+
+```sql
+-- Create the strong entity set: Customer
+CREATE TABLE Customer (
+    customer_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+-- Create the weak entity set: Order
+CREATE TABLE "Order" (
+    order_id SERIAL,
+    order_date DATE,
+    customer_id INT,
+    PRIMARY KEY (order_id, customer_id), -- Composite primary key
+    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id)
+);
+```
+
+1. **Customer Table**: 
+   - `customer_id` is the primary key, uniquely identifying each customer.
+
+2. **Order Table**: 
+   - `order_id` alone is not unique. Thus, it needs `customer_id` as part of its primary key to create a composite key that uniquely identifies each order.
+   - The `customer_id` column is a foreign key referencing the `Customer` table, establishing the relationship.
+
+The `Order` entity depends on the `Customer` entity for its identification, making it a weak entity.
+
+
+### Discriminator vs Primary Key
+
+A **discriminator** is a column (or set of columns) used in a database to differentiate between different types of entities within a single table, particularly in the context of inheritance (single-table inheritance). It helps identify which subclass a particular row belongs to.
+
+**Example:**
+In a table `Vehicle`, you might have different types of vehicles (e.g., `Car`, `Truck`). The `discriminator` column could be named `vehicle_type`, which could take values like 'Car' or 'Truck' to indicate the specific subclass.
+
+```sql
+CREATE TABLE Vehicle (
+    vehicle_id SERIAL PRIMARY KEY,
+    vehicle_type VARCHAR(50),  -- Discriminator
+    make VARCHAR(100),
+    model VARCHAR(100)
+);
+```
+
+#### Composite Key
+
+A **composite key** is a primary key that consists of two or more columns to uniquely identify a record in a table. Composite keys are used when a single column is not sufficient to guarantee uniqueness.
+
+**Example:**
+In an `Order` table, you might use a combination of `order_id` and `customer_id` to create a composite key.
+
+```sql
+CREATE TABLE "Order" (
+    order_id SERIAL,
+    customer_id INT,
+    order_date DATE,
+    PRIMARY KEY (order_id, customer_id)  -- Composite key
+);
+```
+
+#### Key Differences
+
+1. **Purpose**:
+   - **Discriminator**: Differentiates between types of entities in inheritance.
+   - **Composite Key**: Ensures unique identification of records using multiple columns.
+
+2. **Implementation**:
+   - **Discriminator**: Usually a single column indicating the type of the entity.
+   - **Composite Key**: Can involve two or more columns forming a unique combination.
+
+3. **Context**:
+   - **Discriminator**: Commonly used in scenarios involving inheritance.
+   - **Composite Key**: Used in general database design where unique identification needs multiple attributes.
+
+- A **discriminator** helps distinguish between different types of records in a table, especially in an inheritance hierarchy.
+- A **composite key** is a way to uniquely identify records by combining multiple columns into a single primary key.
+- A discriminator and composite key are 2 different things
+
+### Representing Entity Sets with Composite Attributes
+
+In relational databases, entity sets with composite attributes are represented by creating a separate table for the entity and handling the composite attribute appropriately.
+
+1. **Main Entity Table**: Create a table for the main entity that includes its primary key and any simple attributes. 
+
+2. **Composite Attribute**: For the composite attribute, you break it down into its individual components and represent each component as a separate column in the main entity table. 
+
+For example, consider an entity set `Person` with a composite attribute `Address` that includes `Street`, `City`, and `ZipCode`. You would create the `Person` table like this:
+
+```sql
+CREATE TABLE Person (
+    PersonID INT PRIMARY KEY,
+    FirstName VARCHAR(50),
+    LastName VARCHAR(50),
+    Street VARCHAR(100),
+    City VARCHAR(50),
+    ZipCode VARCHAR(10)
+);
+```
+
+In this structure:
+- `PersonID` is the primary key.
+- `FirstName` and `LastName` are simple attributes.
+- `Street`, `City`, and `ZipCode` are the individual components of the composite attribute `Address`.
+
+#### Alternative Approach
+If the composite attribute is complex or has multiple instances (like multiple addresses), you might consider creating a separate table to handle it. For example:
+
+```sql
+CREATE TABLE Address (
+    AddressID INT PRIMARY KEY,
+    PersonID INT,
+    Street VARCHAR(100),
+    City VARCHAR(50),
+    ZipCode VARCHAR(10),
+    FOREIGN KEY (PersonID) REFERENCES Person(PersonID)
+);
+```
+
+In this case:
+- Each address is a separate record in the `Address` table.
+- `PersonID` in the `Address` table serves as a foreign key linking back to the `Person` table.
+
+- Break down composite attributes into individual columns in the main entity table for simple cases.
+- Use a separate table for complex composite attributes or when dealing with multiple instances of the same composite attribute.
+- Flatten the composite attributes
+
+### Redundancy of Schema
+
+![Redundancy](imgs/46-redundancy-of-schema.png)
+
+1. 3 entity sets in this diagram
+   1. instructor
+   2. department
+   3. student
+2. 3 Relationships
+   1. `inst_dept`
+   2. `stud_dept`
+   3. `advisor`
+3. `advisor` is many to one from student to instructor. This has partial participation from both entities
+   1. This means you can have students who do not have instructors and vice versa
+   2. primary key will be (instructor.ID, student.ID)
+4. `stud_dept` is a many to 1 from student to department.
+   1. This relation has full participation from `student` side.
+   2. This means you CANNOT have a student who does not have a department.
+   3. This means every member of entity set `student` has to be in relation `stud_dept`
+   4. Primary Key of `stud_dept` will be (student.id, department.dept_name)
+5. `inst_dept` is a many to 1 relation from instructor to department
+   1. `inst_dept` has full participation from `instructor` side.
+   2. This means every instructor has to be in `inst_dept`
+   3. Every Instructor will be in the `inst_dept` only once. This means the instructor will have only 1 department
+   4. Primary Key of `inst_dept` will be (instructor.Id, department.dept_name)
+
+### Redundancy
+
+Redundancy in a database schema refers to the unnecessary duplication of data, which can lead to inconsistencies, increased storage costs, and complications in data maintenance. Redundant data can occur in various forms, including duplicate records or repeated information across tables.
+
+### Examples of Redundancy
+
+1. **Duplicate Records**: If a database contains multiple entries for the same entity, such as two entries for the same customer, this leads to redundancy.
+
+   **Example**:
+   ```sql
+   CustomerID | Name    | Email
+   ------------|---------|--------------------
+   1           | Alice   | alice@example.com
+   1           | Alice   | alice@example.com  -- Duplicate
+   ```
+
+2. **Repeating Groups**: If multiple attributes of the same type are stored in a single table instead of being separated into their own entities.
+
+   **Example**:
+   ```sql
+   Orders
+   OrderID | CustomerID | Product1 | Product2 | Product3
+   ---------|-------------|----------|----------|----------
+   101     | 1           | Widget A | Widget B | Widget C
+   ```
+
+   Here, `Product1`, `Product2`, and `Product3` are repeating groups and can lead to many unused columns if there are fewer than three products.
+
+### Mitigating Redundancy
+
+To mitigate redundancy, database designers often follow normalization principles.
+
+1. **Normalization**: This process involves organizing the database into tables and establishing relationships between them to reduce redundancy.
+
+   - **First Normal Form (1NF)**: Ensure that all columns contain atomic values and each entry in a column is of the same type.
+   - **Second Normal Form (2NF)**: Ensure that all non-key attributes are fully functional dependent on the primary key, eliminating partial dependency.
+   - **Third Normal Form (3NF)**: Ensure that all attributes are only dependent on the primary key, eliminating transitive dependencies.
+
+   **Example of Normalization**:
+   Instead of storing products directly in the orders table, create separate tables for customers and products:
+
+   ```sql
+   CREATE TABLE Customers (
+       CustomerID INT PRIMARY KEY,
+       Name VARCHAR(50),
+       Email VARCHAR(100)
+   );
+
+   CREATE TABLE Products (
+       ProductID INT PRIMARY KEY,
+       ProductName VARCHAR(50)
+   );
+
+   CREATE TABLE Orders (
+       OrderID INT PRIMARY KEY,
+       CustomerID INT,
+       ProductID INT,
+       FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID),
+       FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+   );
+   ```
+
+2. **Using Foreign Keys**: Implementing foreign keys to link tables reduces the need to repeat data. For instance, instead of repeating customer information in every order, you reference the `CustomerID`.
+
+3. **Avoiding Unnecessary Columns**: Design tables to include only necessary fields, removing any that could lead to redundancy.
+
+4. **Data Integrity Constraints**: Use constraints to ensure data integrity. For instance, applying unique constraints can help avoid duplicate entries.
+
+### Many to One relationship with Full Participation
+
+In a many-to-one relationship, multiple records in one table (the "many" side) can be associated with a single record in another table (the "one" side).
+
+#### Scenario
+
+- Each student can enroll in only one class, but each class can have many students.
+- We will enforce full participation, meaning every student must be associated with a class.
+
+#### Table Structure
+
+1. **Classes Table**: Represents the classes available.
+   - `ClassID` (Primary Key)
+   - `ClassName`
+
+2. **Students Table**: Represents students who are enrolled in classes.
+   - `StudentID` (Primary Key)
+   - `StudentName`
+   - `ClassID` (Foreign Key referencing `Classes.ClassID`)
+
+#### SQL Schema
+
+Here’s how you would create these tables in SQL:
+
+```sql
+-- Create Classes table
+CREATE TABLE Classes (
+    ClassID INT PRIMARY KEY,
+    ClassName VARCHAR(50) NOT NULL
+);
+
+-- Create Students table with a foreign key reference to Classes
+CREATE TABLE Students (
+    StudentID INT PRIMARY KEY,
+    StudentName VARCHAR(50) NOT NULL,
+    ClassID INT NOT NULL,
+    FOREIGN KEY (ClassID) REFERENCES Classes(ClassID) ON DELETE CASCADE,
+    CONSTRAINT fk_class
+        FOREIGN KEY (ClassID)
+        REFERENCES Classes(ClassID)
+        ON DELETE CASCADE
+);
+```
+
+#### Explanation
+
+1. **Classes Table**: This table contains unique identifiers for classes. The `ClassID` serves as the primary key.
+
+2. **Students Table**: 
+   - `StudentID` is the primary key for identifying each student.
+   - `ClassID` is a foreign key that references `ClassID` in the `Classes` table. This establishes the many-to-one relationship, indicating that multiple students can belong to one class.
+   - The `ON DELETE CASCADE` clause means that if a class is deleted, all associated students will also be deleted, ensuring referential integrity.
+
+#### Full Participation
+
+To enforce full participation, you can add a NOT NULL constraint to the `ClassID` in the `Students` table:
+
+```sql
+ClassID INT NOT NULL,
+```
+
+This ensures that every student must belong to a class, thereby enforcing full participation. If you attempt to insert a student without specifying a class, the database will reject the operation.
+
+```sql
+-- Inserting data into Classes
+INSERT INTO Classes (ClassID, ClassName) VALUES (1, 'Mathematics');
+INSERT INTO Classes (ClassID, ClassName) VALUES (2, 'Science');
+
+-- Inserting data into Students
+INSERT INTO Students (StudentID, StudentName, ClassID) VALUES (1, 'Alice', 1);
+INSERT INTO Students (StudentID, StudentName, ClassID) VALUES (2, 'Bob', 1);
+INSERT INTO Students (StudentID, StudentName, ClassID) VALUES (3, 'Charlie', 2);
+```
+
+#### Querying the Data
+
+To see the relationship, you can perform a JOIN:
+
+```sql
+SELECT 
+    Students.StudentID,
+    Students.StudentName,
+    Classes.ClassName
+FROM 
+    Students
+JOIN 
+    Classes ON Students.ClassID = Classes.ClassID;
+```
+```
+ studentid | studentname |  classname  
+-----------+-------------+-------------
+         1 | Alice       | Mathematics
+         2 | Bob         | Mathematics
+         3 | Charlie     | Science
+(3 rows)
+```
+
+The many-to-one relationship between `Students` and `Classes` is clearly defined, ensuring that each student is associated with one class while allowing each class to have many students. The implementation of NOT NULL on `ClassID` enforces full participation, guaranteeing that every student is linked to a class.
+
+
+### Problem
+Make 2 Tables Employee and Department. Then make the following relations
+
+1. One to One from Employee to Department
+2. Many to One from Employee to Department
+3. Many To Many from Employee to Department
+4. One to One from Department to Employee
+
+```SQL
+CREATE TABLE Employee (
+   id INT PRIMARY KEY,
+   Employee_Name VARCHAR(200) NOT NULL
+);
+
+CREATE TABLE Department(
+   id INT PRIMARY KEY,
+   department_name VARCHAR(200) NOT NULL
+);
+
+INSERT INTO Department VALUES (1, 'Mechanical');
+INSERT INTO Department VALUES (2, 'Aerospace');
+
+INSERT INTO Employee VALUES (1, 'Prof. Mechatronix');
+INSERT INTO Employee VALUES (2, 'Prof. FlyHigh');
+```
+
+#### One to One from Employee to Department
+
+```SQL
+CREATE TABLE emp_dept_one_one(
+   emp_id INT PRIMARY KEY,
+   dept_id INT UNIQUE,
+   FOREIGN KEY (emp_id) REFERENCES Employee(id)
+      ON DELETE CASCADE,
+   FOREIGN KEY (dept_id) REFERENCES Department(id)
+      ON DELETE CASCADE
+)
+
+INSERT INTO emp_dept_one_one VALUES (1, 1); /* Allowed */
+INSERT INTO emp_dept_one_one VALUES (1, 2); /* Not Allowed */
+INSERT INTO emp_dept_one_one VALUES (2, 1); /* Not Allowed*/
+```
+
+### Many to One From Employee to Department
+
+```SQL
+CREATE TABLE emp_dept_many_one (
+   dept_id INT,
+   emp_id INT UNIQUE,
+   FOREIGN KEY (emp_id) REFERENCES Employee(id)
+      ON DELETE CASCADE,
+   FOREIGN KEY (dept_id) REFERENCES Department(id)
+      ON DELETE CASCADE
+);
+
+INSERT INTO emp_dept_many_one VALUES (1, 1); /* Allowed */
+INSERT INTO emp_dept_many_one VALUES (1, 2); /* Allowed */
+INSERT INTO emp_dept_many_one VALUES (2, 1); /* NOT Allowed */
+```
+
+### Many to Many From Employee to Department
+
+```SQL
+CREATE TABLE emp_dept_many_many (
+   dept_id INT,
+   emp_id INT,
+   PRIMARY KEY (dept_id, emp_id),
+   FOREIGN KEY (emp_id) REFERENCES Employee(id)
+      ON DELETE CASCADE,
+   FOREIGN KEY (dept_id) REFERENCES Department(id)
+      ON DELETE CASCADE
+);
+
+INSERT INTO emp_dept_many_many VALUES (1, 1); /* Allowed */
+INSERT INTO emp_dept_many_many VALUES (1, 1); /* NotAllowed */
+INSERT INTO emp_dept_many_many VALUES (1, 2); /* Allowed */
+INSERT INTO emp_dept_many_many VALUES (2, 1); /* Allowed */
+INSERT INTO emp_dept_many_many VALUES (2, 2); /* Allowed */
+```
