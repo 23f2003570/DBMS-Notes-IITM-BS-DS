@@ -2002,3 +2002,66 @@ INSERT INTO emp_dept_many_many VALUES (1, 2); /* Allowed */
 INSERT INTO emp_dept_many_many VALUES (2, 1); /* Allowed */
 INSERT INTO emp_dept_many_many VALUES (2, 2); /* Allowed */
 ```
+
+
+
+
+## [L4.5: Entity-Relationship Model/3 (32:00)](https://youtu.be/WOWKszMjmgE)
+
+### 'Is A' Relationship a.ka ISA
+
+In the context of databases, the "Is A" relationship often pertains to how entities are structured and related within a database schema, especially when dealing with inheritance or categorization.
+
+1. **Entity Relationship Models**: In databases, entities (tables) can have relationships that reflect real-world connections. An "Is A" relationship indicates that one entity is a subtype of another. For example, in a database for a zoo, you might have a table for `Animals`, and a more specific table for `Mammals`. Here, "Mammals is a Animals" implies that every entry in the `Mammals` table also qualifies as an entry in the `Animals` table.
+
+2. **Table Inheritance**: This concept can be implemented through different strategies:
+   - **Single Table Inheritance**: All data for a base class and its subclasses is stored in a single table with a type discriminator column. For instance, a single `Animals` table might have columns for all animal types, with a column indicating whether an entry is a `Mammal`, `Bird`, etc.
+   - **Class Table Inheritance**: Each class has its own table. The `Mammals` table would store additional attributes specific to mammals, while still relating back to the `Animals` table via a foreign key.
+   - **Concrete Table Inheritance**: Each subclass has its own table with all relevant attributes, without a separate base class table.
+
+3. **Normalization**: The "Is A" relationship aids in normalizing the database design. By categorizing entities, you can reduce redundancy and enhance data integrity. For instance, if all animals share certain attributes, it makes sense to have a parent `Animals` table and child tables for specific types.
+
+4. **Querying**: Understanding the "Is A" relationship is crucial for querying the database effectively. For example, if you want to retrieve all mammals, you would query the `Mammals` table, but you might also want to join it with the `Animals` table to get broader attributes or information.
+
+#### Example:
+
+- **Entities**:
+  - `Animals (id, name, type)`
+  - `Mammals (id, fur_color, habitat)`
+  - `Birds (id, wing_span, nest_type)`
+
+Here, both `Mammals` and `Birds` "are" types of `Animals`. This structure allows for efficient data management and querying while preserving the hierarchical relationship between entities.
+
+![ISA Relations](imgs/47-ISA-relationship.png)
+
+1. Instructor is a Employee
+2. Employee is a Person
+3. so Instructor is a specialized form of person
+   1. Fields of Instructor are all of person+employee+instructor
+
+#### Three ways of ISA relations modelling
+
+1. **Specialization Method:** Model each hierarchical entity as a table
+   1. PERSON | ID, name, street, city
+   2. STUDENT | ID, total_cred
+   3. employee | ID, salary
+   4. Remember ID comes from Person!
+   5. Drawback is JOINING relations i.e TIME Complexity
+   
+2. Flatten the whole thing
+   1. PERSON | ID, name, street, city
+   2. STUDENT | ID, name, street, city, total_cred
+   3. employee | ID, name, street, city, salary
+   4. DRAWBACK: Space Complexity and keeping all these data tables consistent
+3. **Generalization**
+   1. ID, name, street, city, Salary, total_cred
+   2. You will need to add an `discriminator`
+      1. or do null signature checks to find who is who 
+
+### Aggregation
+
+![Aggregation](imgs/48-aggregation.png)
+
+1. `eval_for` is Relation between project, student, instructor.
+
+WIP: 23:43
