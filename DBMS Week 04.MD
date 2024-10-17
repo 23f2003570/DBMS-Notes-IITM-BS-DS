@@ -147,14 +147,14 @@ In relational databases, the division operation finds tuples in one relation tha
 
 Given two relations:
 
-- $R(A, B)$: Relation $R$has attributes $A$and $B$.
-- $S(B)$: Relation $S$has attribute $B$.
+- $R(A, B)$: Relation $R$ has attributes $A$ and $B$.
+- $S(B)$: Relation $S$ has attribute $B$.
 
-The result of the division operation $R \div S$will yield a new relation containing all values of $A$from $R$such that for every tuple in $S$, there exists a corresponding tuple in $R$with that $A$and the matching $B$values.
+The result of the division operation $R \div S$ will yield a new relation containing all values of $A$ from $R$ such that for every tuple in $S$, there exists a corresponding tuple in $R$ with that $A$ and the matching $B$ values.
 
 #### Mathematical Representation
 
-The result of the division $R \div S$can be expressed as:
+The result of the division $R \div S$ can be expressed as:
 
 $$
 R \div S = \{ t \in \pi_A(R) \mid \forall s \in S, \exists r \in R (r.A = t.A \land r.B = s.B) \}
@@ -190,15 +190,15 @@ Where:
 ##### Performing the Division $R \div S$
 
 1. **Identify tuples in $R$** for each tuple in $S$:
-   - For $S.B = x$: Look for $A$such that $R.A = t.A$and $R.B = x$.
-   - For $S.B = y$: Look for $A$such that $R.A = t.A$and $R.B = y$.
+   - For $S.B = x$: Look for $A$ such that $R.A = t.A$ and $R.B = x$.
+   - For $S.B = y$: Look for $A$ such that $R.A = t.A$ and $R.B = y$.
 
 2. **Check each $A$**:
-   - For $A = 1$: Exists in $R$for both $B = x$and $B = y$.
-   - For $A = 2$: Exists in $R$for both $B = x$and $B = y$.
-   - For $A = 3$: Exists in $R$only for $B = x$, not for $B = y$.
+   - For $A = 1$: Exists in $R$ for both $B = x$ and $B = y$.
+   - For $A = 2$: Exists in $R$ for both $B = x$ and $B = y$.
+   - For $A = 3$: Exists in $R$ only for $B = x$, not for $B = y$.
 
-The result of the division $R \div S$will be:
+The result of the division $R \div S$ will be:
 
 | A    |
 |------|
@@ -236,6 +236,18 @@ HAVING COUNT(DISTINCT B) = (SELECT COUNT(*) FROM S);
 - The main query groups results by $A$and counts distinct $B$values.
 - The `HAVING` clause checks that the count of distinct $B$values for each $A$matches the total count of tuples in $S$.
 
+#### Programmatic way
+1. Find all rows in $S$ with all of $T$'s in it
+2. This will be $r_1$, $r_2$...,$r_n$
+3. do a $r - T$ that is all of $r_n$ without `t` in it
+4. Intersect $r_1 \cap r_2 \cap ... \cap r_n$
+![Relation Division](imgs/52-relational-division.png)
+
+![Relation Division 2](imgs/53-relational-division.png)
+
+![Relational Division 3](imgs/54-relational-division.png)
+
+![Relational Division 4](imgs/55-relational-division.png)
 
 ### One more Relation Division Example
 
@@ -361,6 +373,7 @@ One more Relation Division example with 2 or more columns
 
 ### Mathematical Expression of Relation Division
 ![Rel Div Formula](imgs/20-rel-div-formula.png)
+
 
 
 ### Theta Join
@@ -731,6 +744,10 @@ To retrieve the names of all students, you can express the query as:
 $$
 \{ s.Name | \text{Students}(s) \}
 $$
+OR
+$$
+\{s.Name | s \in Students \land s.age > 21\}
+$$
 
 This means: "Select the Name of tuple \( s \) from the Students relation."
 
@@ -784,6 +801,8 @@ Tuple Relational Calculus provides a way to express queries based on the propert
 
 ### TRC Example 3
 ![Tuple Relational Calculus](imgs/23-TRC-tuple-relational-calculus.png)
+
+#### TIP: JOIN all the entities, Name them and then apply the FILTER
 
 ### Safety Of Expressions in TRC
 
@@ -1430,6 +1449,32 @@ Basically *Prof. PPD* is saying is
 1. `prereq` is a course because It has all properties of a course.
 2. `prereq_id` is the same as `course_id`
 
+In the context of Entity-Relationship Diagrams (ERDs), **roles** refer to the specific functions or responsibilities that entities have within a relationship. They help clarify how entities interact with one another and provide context to the relationships depicted in the diagram. Here's a breakdown of the concept:
+
+#### Definition of Roles
+
+1. **Role Specification**: A role defines how an entity participates in a relationship. For example, in a relationship between "Student" and "Course," the "Student" might have the role of "enrollee," while the "Course" might have the role of "offered course."
+
+2. **Multiplicity**: Roles often help illustrate the cardinality of relationships, indicating how many instances of one entity can be associated with instances of another entity. For instance, a "Professor" might have the role of "instructor" in a relationship with "Course," which could be one-to-many (a professor can teach multiple courses).
+
+3. **Clarity in Complex Relationships**: In scenarios with more than two entities involved, roles become particularly important. For instance, in a relationship involving "Student," "Course," and "Professor," roles can clarify whether a student is an "enrollee" or a "auditor" and how a professor fits into the context of teaching.
+
+#### Importance of Roles in ERDs
+
+1. **Understanding Interactions**: Defining roles enhances the understanding of how entities relate to one another, making the ERD more intuitive for stakeholders.
+
+2. **Improving Database Design**: By clarifying roles, designers can make more informed decisions about database structure, such as how to implement foreign keys or manage constraints.
+
+3. **Facilitating Communication**: Roles provide a common language for discussing relationships among team members, stakeholders, and during documentation.
+
+#### Example
+
+In a simple ERD involving "Author" and "Book":
+
+- **Author** has the role of "writer" in the relationship with "Book."
+- **Book** has the role of "written work."
+
+This setup clarifies the interaction between the two entities and helps in determining how many authors can be linked to a book and vice versa.
 
 ### Cardinality Constraints
 
@@ -2064,4 +2109,178 @@ Here, both `Mammals` and `Birds` "are" types of `Animals`. This structure allows
 
 1. `eval_for` is Relation between project, student, instructor.
 
-WIP: 23:43
+
+### ER Design Decisions
+
+Entity-Relationship Diagrams (ERDs) are crucial for database design, and several key decisions shape their effectiveness:
+
+1. **Entity Identification**: Deciding which entities to include is foundational. Entities should represent distinct objects or concepts relevant to the domain, ensuring that they encapsulate all necessary data without redundancy.
+
+2. **Attributes Definition**: Choosing the right attributes for each entity is vital. Attributes should be meaningful and directly related to the entity's role in the system, and it's important to distinguish between essential and optional attributes.
+
+3. **Relationships**: Defining the relationships between entities, including their cardinalities (one-to-one, one-to-many, many-to-many), is critical. This affects how data is accessed and maintained, influencing both database performance and integrity.
+
+4. **Normalization**: Applying normalization principles helps reduce data redundancy and improve data integrity. Decisions about normalization levels can impact the complexity of the ERD and the resulting database structure.
+
+5. **Constraints**: Establishing constraints, such as primary keys, foreign keys, and unique constraints, is essential for maintaining data integrity. These constraints enforce rules that govern how data can be inserted, updated, or deleted.
+
+6. **Diagram Clarity**: The overall clarity of the diagram is important for communication among stakeholders. Using consistent notation, clear labels, and organized layouts helps convey the design effectively.
+
+7. **Scope and Level of Detail**: Deciding how detailed the ERD should be based on the audience is crucial. High-level ERDs might be suitable for stakeholders, while more detailed versions are necessary for developers.
+
+8. **Aggregation** would you like to use an aggregated set as a single unit without bothering about the underlying implementation ?
+9. **Specialization/Generalization** Would you want to use any of these ? How would your entities respond to change ?
+
+### Symbols in ER Diagrams
+
+#### Modern Representations
+![Symbols in ER Diagrams](imgs/49-er-diagram-symbols.png)
+
+#### Older Representations
+![Symbols in ER Diagrams](imgs/50-erd-alternate.png)
+
+![Chen alternate](imgs/51-erd-alternate.png)
+
+
+### Design Processes
+
+The **top-down** and **bottom-up** design processes refer to two different approaches for developing a database schema.
+
+#### Top-Down Design Process
+
+1. **Conceptual Design**: This approach starts with a high-level view of the entire system. You begin by identifying the overall requirements and objectives of the database, including the business processes it will support.
+
+2. **Entity Identification**: From the conceptual model, identify major entities and their relationships. This often involves creating an Entity-Relationship Diagram (ERD) to visualize the structure.
+
+3. **Detailing Attributes**: Once entities and relationships are defined, you break them down further to specify attributes for each entity.
+
+4. **Normalization**: After detailing attributes, apply normalization techniques to minimize redundancy and ensure data integrity.
+
+5. **Logical Design**: Transform the conceptual model into a logical design, specifying the tables, primary keys, foreign keys, and constraints based on the relational model.
+
+6. **Physical Design**: Finally, convert the logical design into a physical design, considering aspects like indexing, partitioning, and storage specifics.
+
+**Advantages**:
+- Provides a clear overall vision of the system.
+- Facilitates stakeholder involvement at early stages.
+- Helps in identifying all entities and their relationships comprehensively.
+
+#### Bottom-Up Design Process
+
+1. **Data Collection**: This approach begins by gathering detailed information about specific data requirements. It often involves looking at existing data sources, user needs, and specific use cases.
+
+2. **Identifying Data Elements**: Identify data elements, their attributes, and relationships based on the collected data. This involves analyzing specific datasets or documents that inform the structure.
+
+3. **Creating Entities**: From the identified data elements, create entities and their attributes. Relationships are also defined based on how the data interacts.
+
+4. **Integration**: After creating the entities, integrate them into a coherent structure. This may require iterative adjustments to ensure that all parts work together.
+
+5. **Normalization**: Similar to the top-down approach, apply normalization to reduce redundancy and ensure integrity.
+
+6. **Schema Development**: Develop the schema, including tables, keys, and constraints, to create the final database structure.
+
+**Advantages**:
+- Focuses on real data and user needs, making it practical and grounded.
+- Allows for flexibility in accommodating changes based on discovered data.
+- Can be quicker in scenarios with well-defined existing data structures.
+
+- **Top-Down Design** is a systematic approach that starts from a high-level overview and works down to the details, ensuring a comprehensive understanding of the entire system from the outset.
+- **Bottom-Up Design** focuses on specific data elements and builds up from them, making it a more practical approach based on existing needs and data.
+
+
+### Generalization vs Specialization
+
+In the context of relational database management systems (RDBMS), **generalization** and **specialization** are two important concepts related to the organization of data, particularly in designing entity-relationship models. They help manage the hierarchy of entities and their relationships. Here's a breakdown of both concepts:
+
+#### Generalization
+
+**Definition**: Generalization is the process of extracting shared characteristics from two or more entities and combining them into a generalized supertype entity. It focuses on commonalities among entities.
+
+**Key Points**:
+- **Higher Level Abstraction**: Generalization leads to the creation of a higher-level entity (the supertype) that represents shared attributes and relationships.
+- **Example**: If you have two entities, `Car` and `Truck`, you can generalize them into a single entity called `Vehicle`. The `Vehicle` entity might have common attributes like `Make`, `Model`, and `Year`, while `Car` and `Truck` can have their specific attributes (e.g., `NumberOfDoors` for `Car` and `LoadCapacity` for `Truck`).
+- **Benefits**: This approach reduces redundancy and promotes data consistency by centralizing common attributes. It also simplifies data management and querying.
+
+#### Specialization
+
+**Definition**: Specialization is the process of defining one or more subtypes of a higher-level entity (supertype), focusing on the distinct characteristics of these subtypes.
+
+**Key Points**:
+- **Lower Level Abstraction**: Specialization leads to the creation of subtypes that inherit attributes from the supertype but also have their own specific attributes.
+- **Example**: Continuing from the previous example, if `Vehicle` is the supertype, you can specialize it into `Car`, `Truck`, and `Motorcycle`. Each of these subtypes can have unique attributes that are not applicable to the others.
+- **Benefits**: Specialization allows for better organization of data by enabling the addition of specific attributes relevant to subtypes. This enhances the accuracy of data representation and improves query efficiency.
+
+- **Generalization** combines multiple entities into a broader supertype to highlight shared attributes, promoting abstraction and reducing redundancy.
+- **Specialization** takes a supertype and defines distinct subtypes to highlight unique attributes, allowing for a more detailed and organized representation of data.
+
+### General Truths according to IITM
+
+1. In Attribute inheritance, a lower-level entity set inherits all the attributes and relationship participation of the higher-level entity set
+2. TRUE: Statement 1: Any non-binary relationship can be represented using binary relationships by creating an artificial entity set.
+3. FALSE: Statement 2: It is not possible to replace any non-binary relationship set by a number of distinct binary relationship sets.
+
+NOTE: You need to be serious about Week 4
+
+
+### Sample Dataset
+
+```SQL
+CREATE TABLE DepartmentLocation (
+    DepartmentName VARCHAR(100) PRIMARY KEY,
+    City VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE EmployeeDepartment (
+    EmployeeID INT PRIMARY KEY,
+    EmployeeName VARCHAR(100) NOT NULL,
+    DepartmentName VARCHAR(100),
+    FOREIGN KEY (DepartmentName) REFERENCES DepartmentLocation(DepartmentName)
+);
+
+INSERT INTO DepartmentLocation (DepartmentName, City) VALUES ('HR', 'New York');
+INSERT INTO DepartmentLocation (DepartmentName, City) VALUES ('Finance', 'Los Angeles');
+INSERT INTO DepartmentLocation (DepartmentName, City) VALUES ('IT', 'San Francisco');
+INSERT INTO DepartmentLocation (DepartmentName, City) VALUES ('Marketing', 'Chicago');
+INSERT INTO DepartmentLocation (DepartmentName, City) VALUES ('Sales', 'Houston');
+INSERT INTO DepartmentLocation (DepartmentName, City) VALUES ('Operations', 'Phoenix');
+INSERT INTO DepartmentLocation (DepartmentName, City) VALUES ('Research', 'Philadelphia');
+INSERT INTO DepartmentLocation (DepartmentName, City) VALUES ('Legal', 'San Diego');
+INSERT INTO DepartmentLocation (DepartmentName, City) VALUES ('Support', 'Dallas');
+INSERT INTO DepartmentLocation (DepartmentName, City) VALUES ('Logistics', 'Seattle');
+
+
+INSERT INTO EmployeeDepartment (EmployeeID, EmployeeName, DepartmentName) VALUES (1, 'Alice Smith', 'HR');
+INSERT INTO EmployeeDepartment (EmployeeID, EmployeeName, DepartmentName) VALUES (2, 'Bob Johnson', 'HR');
+INSERT INTO EmployeeDepartment (EmployeeID, EmployeeName, DepartmentName) VALUES (3, 'Charlie Brown', 'HR');
+INSERT INTO EmployeeDepartment (EmployeeID, EmployeeName, DepartmentName) VALUES (4, 'Diana Prince', 'Marketing');
+INSERT INTO EmployeeDepartment (EmployeeID, EmployeeName, DepartmentName) VALUES (5, 'Ethan Hunt', 'Sales');
+INSERT INTO EmployeeDepartment (EmployeeID, EmployeeName, DepartmentName) VALUES (6, 'Fiona Green', 'Operations');
+INSERT INTO EmployeeDepartment (EmployeeID, EmployeeName, DepartmentName) VALUES (7, 'George Wilson', 'Research');
+INSERT INTO EmployeeDepartment (EmployeeID, EmployeeName, DepartmentName) VALUES (8, 'Hannah Lee', 'Legal');
+INSERT INTO EmployeeDepartment (EmployeeID, EmployeeName, DepartmentName) VALUES (9, 'Ian Brown', 'Support');
+INSERT INTO EmployeeDepartment (EmployeeID, EmployeeName, DepartmentName) VALUES (10, 'Julia White', 'Logistics');
+
+
+/* NOW FIND ALL EMPLOYEES LIVING IN NEWYORK (ANY DEPARTMENT)*/
+
+SELECT EmployeeName FROM EmployeeDepartment
+INNER JOIN
+DepartmentLocation
+ON EmployeeDepartment.DepartmentName = DepartmentLocation.DepartmentName
+AND DepartmentLocation.City = 'New York'
+
+
+SELECT EmployeeName FROM EmployeeDepartment
+NATURAL JOIN
+DepartmentLocation
+WHERE DepartmentLocation.City = 'New York'
+```
+
+```
+ employeename  
+---------------
+ Alice Smith
+ Bob Johnson
+ Charlie Brown
+(3 rows)
+```
