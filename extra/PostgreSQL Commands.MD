@@ -146,3 +146,26 @@ SELECT e.name, d.name from employee as e, department as d;
 ```
 
 ## INNER/NATURAL JOIN
+
+## Truncate
+
+The `TRUNCATE` command in SQL is used to remove all rows from a table quickly and efficiently. Here are some key points about the `TRUNCATE` command:
+
+1. **Data Removal**: `TRUNCATE` deletes all rows in a table, but the table structure, including its columns, constraints, and indexes, remains intact.
+
+2. **Performance**: `TRUNCATE` is generally faster than `DELETE` because it doesn't log individual row deletions. Instead, it logs the page deallocations, making it more efficient for large tables.
+
+3. **Cannot Use WHERE Clause**: Unlike `DELETE`, `TRUNCATE` cannot filter rows based on a condition. It always removes all rows.
+
+4. **Cannot Be Used with Indexed Views**: `TRUNCATE` cannot be used on tables that are referenced by foreign key constraints unless those constraints are dropped or disabled.
+
+5. **Resets Identity Columns**: If the table has an identity column, truncating the table will reset the identity counter to the seed value defined for that column.
+
+6. **Transaction Behavior**: `TRUNCATE` is a DDL (Data Definition Language) command and, in most databases, cannot be rolled back if executed outside of a transaction. However, within a transaction, it can be rolled back if not yet committed.
+
+#### Example
+```sql
+TRUNCATE TABLE employees;
+```
+
+This command would remove all records from the `employees` table without affecting its structure.

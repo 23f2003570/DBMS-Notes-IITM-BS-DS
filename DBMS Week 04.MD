@@ -1986,6 +1986,8 @@ JOIN
 The many-to-one relationship between `Students` and `Classes` is clearly defined, ensuring that each student is associated with one class while allowing each class to have many students. The implementation of NOT NULL on `ClassID` enforces full participation, guaranteeing that every student is linked to a class.
 
 
+**One-to-many relationship is a type of cardinality that defines a relationship between two entities $A$ and $B$ where an element in $A$ may be linked to multiple elements in $B$ but an element in $B$ is linked to only one element in $A$**
+
 ### Problem
 Make 2 Tables Employee and Department. Then make the following relations
 
