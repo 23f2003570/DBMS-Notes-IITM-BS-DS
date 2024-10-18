@@ -1146,7 +1146,25 @@ Weak entity sets are a fundamental concept in Entity-Relationship (ER) modeling.
 2. **Partial Key**: Weak entities have a partial key, which is an attribute or set of attributes that can distinguish weak entities within a particular strong entity context.
 3. **Existence Dependency**: Weak entities depend on the existence of a strong entity; they cannot exist independently.
 4. An entity set that is not a weak entity set is termed as a strong entity set.
-5. Every weak entity must be associated with an identifying entity
+5. Every weak entity must be associated with an identifying/strong entity. The primary key of the strong entity and weak entity will be added into the schema of the relationship
+
+```sql
+/* STRONG ENTITY. HAS A PK */
+CREATE TABLE departments (
+    department_id SERIAL PRIMARY KEY,
+    department_name VARCHAR(100) NOT NULL
+);
+
+-- WEAK ENTITY
+CREATE TABLE employees (
+    employee_number INT NOT NULL,
+    department_id INT NOT NULL,
+    employee_name VARCHAR(100) NOT NULL,
+    PRIMARY KEY (employee_number, department_id), -- Composite primary key
+    FOREIGN KEY (department_id) REFERENCES departments(department_id)
+);
+
+```
 
 
 #### Example Scenario
@@ -2009,6 +2027,14 @@ CREATE TABLE emp_dept_one_one(
 INSERT INTO emp_dept_one_one VALUES (1, 1); /* Allowed */
 INSERT INTO emp_dept_one_one VALUES (1, 2); /* Not Allowed */
 INSERT INTO emp_dept_one_one VALUES (2, 1); /* Not Allowed*/
+
+
+CREATE TABLE dept_one_one (
+   id INT PRIMARY KEY,
+   emp_id INT,
+   department_name VARCHAR(200) NOT NULL,
+   FOREIGN KEY (emp_id) REFERENCES Employee(Id)
+)
 ```
 
 ### Many to One From Employee to Department
@@ -2284,3 +2310,5 @@ WHERE DepartmentLocation.City = 'New York'
  Charlie Brown
 (3 rows)
 ```
+
+## End of Week 4

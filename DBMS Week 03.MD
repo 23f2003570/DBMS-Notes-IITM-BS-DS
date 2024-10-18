@@ -1764,6 +1764,8 @@ Here, `order_id` is the primary key, ensuring that each order is uniquely identi
 
 A FOREIGN KEY constraint links two tables together. It enforces a relationship between the data in the two tables, ensuring that a value in one table must exist in another table.
 
+**NOTE: Foreign Keys has to may to a primary key!**
+
 **Example:**
 
 ```sql
@@ -1776,6 +1778,24 @@ CREATE TABLE order_items (
 ```
 
 In this example, the `order_id` column in the `order_items` table is a foreign key that references the `order_id` in the `orders` table. This ensures that each order item must be associated with a valid order.
+
+**The following is not possible.**
+```SQL
+CREATE TABLE customers (
+    customer_id INT,
+    name VARCHAR(100),
+    email VARCHAR(100)
+);
+CREATE TABLE
+CREATE TABLE orders (
+    order_id INT,
+    order_date DATE,
+    customer_id INT,
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+
+/*ERROR:  there is no unique constraint matching given keys for referenced table "customers"*/
+```
 
 #### 5. **CHECK Constraint**
 
