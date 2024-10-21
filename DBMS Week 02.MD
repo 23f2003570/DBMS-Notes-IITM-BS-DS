@@ -312,6 +312,7 @@ The **Turing Steps** are specific actions that define how a Turing machine opera
      ```
    - **Notation**: `σ_condition (Table)`
    - **Example**: `σ_Country='USA'(Customers)`
+   - **IMPORTANT:** Every SELECT generates a Cartesian product of the relations listed in the from clause. Then applies the predicates specified in the where clause on the result. And finally projects the result
 
 2. **Projection (π)**
    - **Operation**: Selects specific columns from a table, effectively reducing the number of columns.

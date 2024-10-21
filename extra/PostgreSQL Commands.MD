@@ -169,3 +169,109 @@ TRUNCATE TABLE employees;
 ```
 
 This command would remove all records from the `employees` table without affecting its structure.
+
+
+## ALTER TABLE
+
+```sql
+ALTER TABLE no_primary DROP column_name;
+ALTER TABLE no_primary DROP CONSTRAINT constraint_name;
+```
+
+## Correlation Name
+
+```sql
+SELECT DISTINCT T.name
+FROM instructor AS T, instructor AS S
+WHERE T.salary > S.salary AND S.dept_name = 'Biology';
+```
+
+An identifier, such as T and S, that is used to rename a relation is referred to as a `correlation name` in the SQL standard, but it is also commonly referred to as a *table alias*, or a *correlation variable*, or a *tuple variable*.
+
+## Order By
+
+- By default, the order by clause lists items in ascending order.
+- To specify the sort order, we may specify desc for descending order or asc for ascending order.
+
+```sql
+SELECT *
+FROM instructor
+ORDER BY salary DESC, name asc;
+```
+
+## Where Clause Predicates
+
+```SQL
+WHERE salary BETWEEN 90000 AND 100000;
+WHERE salary <= 100000 AND salary >= 90000;
+WHERE instructor.ID=teaches.ID AND dept_name = 'Biology';
+WHERE (instructor.ID, dept_name) = (teaches.ID, 'Biology'); --ORACLE DOES NOT SUPPORT THIS
+WHERE salary IS NULL;
+WHERE salary > 10000 IS UNKNOWN;
+```
+
+## Predicates
+- IS NULL
+- IS NOT NULL
+  
+## SET OPERATIONS
+
+- union (OR), intersect (AND), and except (DIFFERENCE)
+- The union operation automatically eliminates duplicates, unlike the `select` clause. Use `UNION ALL` to retain duplicates
+- Intersect is an AND. Not supported by MYSQL. Use sub queries instead
+  - The intersect operation automatically eliminates duplicates 
+  - Use `INTERSECT ALL` to retain duplicates
+- The `EXCEPT` operation outputs all tuples from its first input that do not occur in the second input;
+  - its a SET DIFFERENCE
+  - Oracle uses `minus` keyword
+  - Use `EXCEPT ALL` to retain duplicates
+
+## NULL VALUES
+- The result of an arithmetic expression (involving, for example, +, −, ∗, or ∕) is null if any of the input values is null
+- SQL therefore treats as `unknown` the comparison result of any comparison involving a null value
+  - 1 < null is unknown
+  - AND: The result of true and unknown is unknown, false and unknown is false, while unknown and unknown is unknown.
+  - OR: The result of true or unknown is true, false or unknown is unknown, while unknown or unknown is unknown.
+  - NOT: The result of not unknown is unknown.
+
+## AGGREGATE FUNCTIONS 
+
+Aggregate functions are functions that take a collection (a set or multiset) of values as input and return a single value. SQL offers five standard built-in aggregate functions:9
+
+- Average: avg
+- Minimum: min
+- Maximum: max
+- Total: sum
+- Count: count
+- select count (distinct ID)
+- avoid aggregated attributes in GROUP BY
+
+### Find the average salary in each department.
+
+```sql
+SELECT dept_name, avg(salary) AS avg_salary
+FROM instructor
+GROUP BY dept_name;
+```
+
+### Erroneous Query
+```sql
+/* erroneous query */
+select dept name, ID, avg (salary)
+from instructor
+group by dept name;
+
+-- ID is not in the GROUP BY
+```
+
+### Find the number of instructors in each department who teach a course in the Spring 2018 semester.
+
+**dept_name|instr_count**
+
+```sql
+
+SELECT C.dept_name, count(T.id)
+FROM course AS C, teaches AS T
+WHERE T.semester = 'Spring' AND T.year = 2008
+GROUP BY C.dept_name
+```
