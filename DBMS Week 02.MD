@@ -60,6 +60,10 @@ Good examples of surrogate key are like **JobID**, **Serial Number**. These have
 
 A table can have multiple candidate keys, and each one is a potential choice for the primary key of the table. 
 
+![Candidate Keys](imgs/01-candidate-key.jpeg)
+
+![Candidate Keys](imgs/02-candidate-key.jpeg)
+
 #### Secondary Keys
 
 A **secondary key** is a set of one or more attributes (columns) used to create an additional indexing mechanism to enhance search performance. A secondary key is different from a primary key or unique key because it is not required to be unique and is mainly used to improve query efficiency. 
