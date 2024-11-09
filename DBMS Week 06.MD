@@ -24,7 +24,7 @@
 ---
 
 
-## First Normal Form
+### First Normal Form
 
 1. You need to check if
    1. values are not `Multivalued`
@@ -32,13 +32,13 @@
    3. LHS of relation should be a Superkey
       1. If its not relation instances may duplicate
 
-## Second normal form
+### Second normal form
 1. You need to check if
    1. Relation is in 1NF
    2. R contains no partial dependencies. This means every relation has to be defined by a Candidate Key or Primary Key
 
 
-## Partial Dependency
+### Partial Dependency
 
 Say $R(X, Y, A)$ is a relational schema
 - $X$ is *Candidate Key*
@@ -63,3 +63,194 @@ In this case $Y \rightarrow A$ is a `Partial Dependency`
 
 ![2NF Fix](imgs/58-2NF-Fix-2.png)
 
+### Transitive Dependencies
+
+A **transitive dependency** occurs when one non-prime attribute (an attribute that is not part of any candidate key) depends on another non-prime attribute via a third attribute.
+
+In other words, if we have three attributes **A**, **B**, and **C**, a transitive dependency means:
+- **A** → **B** (A determines B),
+- **B** → **C** (B determines C),
+- Therefore, **A** → **C** (A indirectly determines C through B).
+
+#### Example:
+Let's use an example to illustrate this concept. Consider a **student enrollment** table:
+
+| StudentID | StudentName | CourseID | InstructorName | InstructorEmail |
+|-----------|-------------|----------|----------------|-----------------|
+| 101       | Alice       | CS101    | Dr. Smith      | smith@uni.edu   |
+| 102       | Bob         | CS101    | Dr. Smith      | smith@uni.edu   |
+| 103       | Charlie     | CS102    | Dr. Johnson    | johnson@uni.edu |
+
+In this table:
+- **StudentID** is the primary key (candidate key).
+- **InstructorName** and **InstructorEmail** are dependent on **CourseID** (which is not a candidate key but part of the relational design).
+- There's a **transitive dependency** here:
+  - **StudentID** → **CourseID** (StudentID determines the CourseID).
+  - **CourseID** → **InstructorName** (CourseID determines InstructorName).
+  - So, **StudentID** indirectly determines **InstructorName** through **CourseID**.
+
+#### Why Transitive Dependencies are a Problem:
+Transitive dependencies lead to **data redundancy** and **anomalies** during insertion, deletion, or update operations. For example:
+- If we want to change the instructor for a course (say, for **CS101**), we would need to update all the rows where the course is listed, leading to potential inconsistency if not done correctly.
+
+#### How to Eliminate Transitive Dependencies:
+To eliminate transitive dependencies, we use **Third Normal Form (3NF)**. A table is in 3NF if:
+1. It is in **Second Normal Form (2NF)**.
+2. There is no **transitive dependency** (i.e., all non-prime attributes are directly dependent on the primary key, not on another non-prime attribute).
+
+#### Steps to Remove Transitive Dependency:
+In our example, we could split the table into two tables to avoid the transitive dependency:
+
+##### Table 1: **Student Enrollment**
+
+| StudentID | StudentName | CourseID |
+|-----------|-------------|----------|
+| 101       | Alice       | CS101    |
+| 102       | Bob         | CS101    |
+| 103       | Charlie     | CS102    |
+
+##### Table 2: **Course Details**
+
+| CourseID | InstructorName | InstructorEmail   |
+|----------|----------------|-------------------|
+| CS101    | Dr. Smith      | smith@uni.edu     |
+| CS102    | Dr. Johnson    | johnson@uni.edu   |
+
+Now:
+- **StudentID** → **CourseID** in the **Student Enrollment** table.
+- **CourseID** → **InstructorName** and **InstructorEmail** in the **Course Details** table.
+
+In this design:
+- The **Instructor** data is now stored separately and is only updated in one place (in **Course Details**).
+- There is no transitive dependency anymore because non-prime attributes depend only on the primary key, not on another non-prime attribute.
+
+#### Summary:
+- A **transitive dependency** occurs when one non-prime attribute depends on another non-prime attribute through a third attribute, leading to redundancy and potential anomalies.
+- To resolve transitive dependencies, tables are normalized to **Third Normal Form (3NF)**.
+
+
+### Important Notes on Decomposition
+
+When your data has redundencies, you have to normalize it
+
+Two main objectives to test after normalizing
+1. The relations should be lossless
+2. The relations should preserve the original functional dependencies
+
+
+### Third Normal Form
+
+Relation $dept\_advisor(s\_ID, i\_ID,dept\_name)$  
+
+$F = \{s\_ID, dept\_name \rightarrow i\_ID, i\_ID \rightarrow dept\_name\}$  
+
+- $\{s\_ID, dept\_name\}$ is a Super Key
+- $\{i\_ID \rightarrow dept\_name\}$, Though dept_name is contained in a SK, it is not used in the identifier. But i_ID is an identifier.
+
+|s_id|dept_name|i_ID|
+|-|-|-|
+
+and
+
+|i_ID|dept_name|
+|-|-|
+
+
+1. Is it 1NF (atomic and not multi valued) YES
+2. Is it in 2NF (NO Partial dependency + 1NF) YES
+3. Is it in 3NF (non-prime attributes depend on other non-prime attributes) all of the prime attributes are used. so YES
+4. Even though it's in 3NF, There will be repetition of information
+
+BCNF will guarentee Lossless Joins, but will not guarentee dependency preservation
+
+
+
+## [L6.2: Relational Database Design/7: Normal Forms (32:17)](https://youtu.be/4Vn2-tcg21c)  
+
+BCNF is good in reduction of redundancy but not good at preserving dependencies
+
+Boyce Codd Normal Form is a stronger normal form and requires an inner join
+
+3NF is weaker than BCNF, but it guarantees that the decomposition of functional definitions will be
+1. LOSSLESS
+2. AND Preserves Dependencies
+
+### **3NF:**
+
+A relation $R$ is in BCNF if
+   1. for every FD defined in the original relation (a.k.a associated with $R$) $X \rightarrow A$
+      1. $A \subseteq X$
+      2. OR $X$ is a SuperKey of $R$
+For the above to be in 3NF
+   1. $A$ should be part of some **candidate key**
+
+It should also be in 2NF and 1NF
+
+### Testing for 3NF
+   1. Only check FD's in $F$
+      1. No need to compute FD's in $F^+$
+   2. If $\alpha$ is a Super Key, Use attribute closure to check each dependency of $\alpha \rightarrow \beta$
+   3. if $\alpha$ is not a SuperKey, we have to verify if each attribute in $\beta$ is contained in a candidate key of $R$
+   4. Notes on efficiency
+      1. Tests for 3NF is expensive. It involves finding CK's
+      2. Testing for 3NF is NP HARD
+      3. Decomposition into 3NF can be done in polynomial time.
+
+### 3NF Decomposition Algorithm
+
+1. You are given FD Set - $F$ of a Relation $R$
+2. **First:** Find the canonical/minimum cover $F_c$ of $F$
+3. **Second** For each dependency $R_i$ in the Canonical Cover $F_c$
+   1. $R_i = XY$ for each FD in $F_c$ where $X \rightarrow Y$
+      1. $R_i = XY$ means union $\cup$ of X,Y
+   2. Remember, $R_i$ is the decomposed relation!
+   3. If any key $K \in R$ are not available in $R_1, R_2,...,R_n$
+      1. then .. create one more relation $R_i = K$
+   4. every $R_i$ created this way will be in 3NF, Dependency preserving and lossless join
+
+**3 step process**  
+
+![3NF Decomposition Algorithm](imgs/59-3NF-Algorithm.png)
+
+### 3NF Sample 1
+
+  Given $R = (cust\_id, emp\_id, branch\_name)$
+  
+  Given 
+  $$
+  F = cust\_id, emp\_id \rightarrow branch\_name, type \\
+  emp\_id \rightarrow branch\_name, \\
+  cust\_id, branch\_name \rightarrow emp\_id
+  $$
+
+  $$
+  F_c = cust\_id, emp\_id \rightarrow branch\_name \\
+   cust\_id, emp\_id \rightarrow type \\
+   emp\_id \rightarrow branch\_name \\
+   cust\_id, branch\_name \rightarrow emp\_id
+  $$
+
+  Note that $cust\_id, emp\_id \rightarrow branch\_name$ can be removed as just $emp_id$ can cover/describe $branch_name$
+
+
+  $$
+  R_i = (cust\_id, emp\_id, type) \\
+   (emp\_id, branch\_name) \\
+   (cust\_id, branch\_name, emp\_id)
+  $$
+
+  Note:
+  
+$(emp\_id, branch\_name) \in (cust\_id, branch\_name, emp\_id)$
+
+Therefore 3NF form would be
+
+$$
+  R_{3nf} = (cust\_id, emp\_id, type) \\
+   (cust\_id, branch\_name, emp\_id)
+$$
+
+
+### BCNF Decomposition Algorithm
+
+![BCNF Decomposition Algorithm](imgs/63-BCNF-Decomposition.png)

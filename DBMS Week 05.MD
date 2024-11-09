@@ -64,6 +64,8 @@ Again, consider the same table:
 
 If Bob changes his name to "Robert," we need to update his name in every instance where it appears. If we only update one of the rows and forget the other, the database now contains inconsistent data, with one instance showing "Bob" and another showing "Robert."
 
+
+
 #### Mitigating Anomalies
 
 To mitigate these anomalies, database normalization is often used. Normalization involves organizing the fields and tables of a database to minimize redundancy and dependency. By following normal forms (1NF, 2NF, 3NF, etc.), you can reduce the chances of anomalies occurring. For example, in our student-course example, we could separate the students and courses into different tables, linking them with a relationship table that indicates enrollments. This would prevent all three types of anomalies.
@@ -75,6 +77,8 @@ The relationship between dependencies and anomalies in database systems is a fun
 #### Types of Dependencies
 
 1. **Functional Dependency**: A relationship where one attribute (or a group of attributes) uniquely determines another attribute. For example, if we have a table of students where `StudentID` uniquely identifies `StudentName`, we can say that `StudentID` functionally determines `StudentName`.
+   1. If a Relation Set $R$ has $n$ attributes, we can have $2^n$ subsets
+   2. At maximum, there would be $2^n \times 2^n$ possible Functional Dependencies
 
 2. **Partial Dependency**: This occurs when a non-key attribute is functionally dependent on a part of a composite primary key. This is problematic because it can lead to redundancy.
 
@@ -776,7 +780,11 @@ Now, let’s compute the closure of $X = \{A\}$.
      - $X^+ = \{A, B, C, D\}$
 
 3. **Final Closure**: Since no new attributes can be added, we have:
-   - $ \{A\}^+ = \{A, B, C, D\}$
+   - $\{A\}^+ = \{A, B, C, D\}$
+
+#### Computing Closure
+
+![Closure](imgs/60-closure.png)
 
 #### Example of Closure with More Attributes
 
@@ -936,7 +944,6 @@ Find $[AG]^+$
    2.  $G^+=\{G\}$
    3.  Not a Superset of $R$
 8.  Therefore $AG$ is a Minimal Super Key and Candidate Key
-9.  
 
 ### Trivial Functional Dependency
 
@@ -1001,12 +1008,14 @@ A **canonical cover**, denoted as *Fc*, is a simplified yet equivalent represent
 
 The concept of a **canonical cover** offers a valuable optimization strategy in relational database design. By providing a simplified and equivalent representation of functional dependencies, it facilitates efficient validation of updates, thereby contributing to the overall integrity and performance of the database system. 
 
+![Canonical Cover](imgs/61-canonical-cover.png)
+
 ### Finding Closures
 
 #### Example 1
 Consider a Schema $R(A,B,C,D,E,F,G)$ that satisfies FD (Functional Dependencies)
 
-$A \rightarrow B$, $BC \rightarrow DE$, $AEF \rightarrow G$. Find $(AC)^+$
+$A \rightarrow B$, $BC \rightarrow DE$, $AEF \rightarrow G$. Find $AC^+$
 
 1. $(AC)^+ = \{AC\}$
 2. Since $A \rightarrow B$, $(AC)^+ = \{ACB\}$
@@ -1050,8 +1059,9 @@ We have to use Attribute Closures. And find closure $ACF^+$. If the closure incl
 Extraneous Attributes in $\alpha \rightarrow \beta$
    1. Could be in LHS or RHS
    2. If you remove the extraneous $A$ then the Functional Dependency does not change.
-   3. Lesser attributes means a strong functional dependency 
-   4. in a FD $\{A \rightarrow C, AB \rightarrow CD\}$, $AB^+ = \{ABCD\}$ Here C is extraneous in the RHS
+   3. Lesser attributes on LHS means a strong functional dependency 
+   4. Lesser attributes on RHS makes a weak functional dependency
+   5. in a FD $\{A \rightarrow C, AB \rightarrow CD\}$, $AB^+ = \{ABCD\}$ Here C is extraneous in the RHS
 
 
 To test LHS in $\alpha \rightarrow \beta$
@@ -1080,45 +1090,6 @@ To test RHS in $\alpha \rightarrow \beta$
 
 
 ### Canonical Cover
-
-In database systems, a canonical cover is a simplified and reduced version of a given set of functional dependencies (FDs). It's like a streamlined representation of the original FDs, containing only the essential information.
-
-**Why is it important?**
-
-* **Efficiency:** A smaller set of FDs means faster processing and analysis of data.
-* **Clarity:** A simplified set is easier to understand and manage.
-* **Database Design:** Canonical covers help in designing efficient database schemas by identifying minimal sets of dependencies that must be enforced.
-
-**Characteristics of a Canonical Cover:**
-
-1. **Irreducible:**
-   * **Left-reduced:** No unnecessary attributes on the left-hand side of an FD.
-   * **Right-reduced:** No extraneous attributes on the right-hand side of an FD.
-2. **Lossless:** It preserves all the information contained in the original set of FDs.
-3. **Minimal:** It contains the minimum number of FDs required to represent the same information.
-
-**Steps to Find a Canonical Cover:**
-
-1. **Decomposition:** Break down complex FDs into simpler ones with single attributes on the right-hand side.
-2. **Left Reduction:** Remove unnecessary attributes from the left-hand side of FDs.
-3. **Right Reduction:** Remove unnecessary attributes from the right-hand side of FDs.
-4. **Redundancy Elimination:** Remove redundant FDs that can be derived from others.
-
-**Example:**
-
-Consider the following set of FDs:
-
-```
-F = { A → BC, B → C, AB → C }
-```
-
-**Canonical Cover:**
-
-```
-FC = { A → B, B → C }
-```
-
-In this example, the FD `AB → C` is redundant because it can be derived from `A → B` and `B → C`. Therefore, it's removed from the canonical cover.
 
 In **database systems**, a **canonical cover** (or **minimal cover**) refers to a set of **functional dependencies** that is both **minimal** and **equivalent** to the original set of functional dependencies. The canonical cover ensures that no redundant dependencies exist and that all the dependencies are necessary to preserve the integrity of the data.
 
@@ -1401,6 +1372,9 @@ A **lossless and dependency-preserving** decomposition is ideal but not always a
 4. Lastly see of the FD to test is in $F^{'}$
    1. If it is then kudos, that relation can be accessed in the given Decomposed Relation!
 5. This algorithm is not complete. You may need to compute closures of combination of keys
-   
+
+![Dependency Preservation Algorithm](imgs/62-dependency-preservation.png)
+
 #### Conclusion
 **Dependency Preservation** in database systems is crucial for maintaining the integrity of functional relationships in the schema after it has been decomposed during normalization. While decomposing a schema into smaller relations, it’s important to ensure that the original functional dependencies are preserved to avoid anomalies and maintain consistency. However, achieving both **lossless decomposition** and **dependency preservation** may sometimes be a trade-off when aiming for higher normal forms like BCNF.
+
