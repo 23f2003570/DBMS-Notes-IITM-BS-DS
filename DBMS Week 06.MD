@@ -254,3 +254,15 @@ $$
 ### BCNF Decomposition Algorithm
 
 ![BCNF Decomposition Algorithm](imgs/63-BCNF-Decomposition.png)
+
+#### If you cannot decompose a relation to BCNF, You will have to use an expensive JOIN to retrieve data
+
+
+### 3NF vs BCNF
+
+|3rd Normal Form|Boyce Codd Normal Form|
+|-|-|
+|Focuses on Primary Key|Focuses on Candidate key|
+|High Redundancy compared to BCNF|0% Redundancy|
+|Preserves all dependencies|May not preserve dependencies|
+|$X \rightarrow Y$ is possible if $X$ is **Super Key** OR (this is the relaxation) $Y$ is part of some key|$X \rightarrow Y$ is possible if $X$ is **Super Key**|
