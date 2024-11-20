@@ -17,7 +17,7 @@ echo "Starting PostgreSQL from ${POSTGRES_IMAGE} ...."
 docker run --detach \
     --env-file .env \
     --publish 5432:5432 \
-    --volume ./postgres-data:/var/lib/postgresql/data \
+    --volume /opt/postgres:/var/lib/postgresql/data \
     --restart unless-stopped \
     --network internal-network \
     $POSTGRES_IMAGE
