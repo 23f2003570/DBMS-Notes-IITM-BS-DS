@@ -419,3 +419,7 @@ Find the growth (or function approximation or Big-O) when `i` increases from 0 t
 - **Search Algorithms**: Linear Search has a worst-case time complexity of $O(n)$, while Binary Search, which requires a sorted array, performs much faster with a time complexity of $O(\log n)$.
 - **Graph Algorithms**: BFS, DFS, and Dijkstra’s Algorithm all have time complexities related to the number of vertices $V$ and edges $E$. Dijkstra’s time complexity is reduced using a priority queue, while Floyd-Warshall has cubic complexity $O(n^3)$.
 - **Dynamic Programming**: Algorithms like the Knapsack Problem are often used for optimization problems, and they have polynomial time complexities depending on both the number of items $n$ and the total weight $W$.
+
+
+
+![Complexities of Algorithms](imgs/65-algo-complexities.png)
