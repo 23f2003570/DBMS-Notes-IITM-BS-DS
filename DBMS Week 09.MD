@@ -6,7 +6,6 @@
 
 ## [L9.1: Indexing and Hashing/1: Indexing/1 (32:02)](https://youtu.be/fY-EC1dknnQ)
 
-
 ### Indexes
 
 Database indexes are essential structures that enhance the speed and efficiency of data retrieval operations. At a high level, an index is a data structure that allows the database management system (DBMS) to quickly look up and access rows in a table without scanning every single row. This can drastically reduce query times, especially when dealing with large datasets.
@@ -2030,6 +2029,12 @@ Both **B-Tree** and **B+ Tree** are self-balancing tree data structures designed
   - Sum ASCII represetation of all characters
   - modulo 10
   - gives a value in $[0,9]$
+- Prof. PPD uses buckets to hold records. The Search Key is hashed to a number between 0 and 9.
+  - He uses that as the bucket/silo identifier.
+  - Basically, he appears to `shard` a table of records into buckets
+- By making the bucket identifier [0,9] he is betting on
+  - 1. the Search Keys are **uniformly** distributed over the 10 buckets. That way Bucket over flow does not happen. Remember a bucket size is the size of the block size of the disk.
+- If the bucket hash function (ie sum of ascii values of all characters) has no collision then the buckets is probably going to have same number of records/rows/entries
 
 #### **How Static Hashing Works**
 
@@ -2168,3 +2173,197 @@ The hash table after deletion looks like this:
 | 4          | (empty)                |
 
 Static hashing is a simple and effective technique for implementing hash tables where the size of the hash table is fixed and known in advance. It works well for relatively static datasets but can be inefficient for dynamic datasets that grow or shrink over time. Collisions in static hashing are typically handled using methods like chaining or open addressing. However, since the size of the table is fixed, static hashing may struggle with performance issues if the number of keys is too large or too small for the fixed number of buckets.
+
+
+### Buckets
+
+![Buckets that are hashed](imgs/69-hash-buckets.png)
+
+### Extended Hash Structure (For buckets)
+
+Extendable Hashing is a dynamic, disk-based hashing technique used for indexing in a Database Management System (DBMS). It is primarily employed to manage large datasets efficiently, especially when the data is too large to fit into memory and needs to be stored on disk. It is an improvement over static hashing because it allows for **dynamic expansion** and **shrinkage** of the hash table without needing to rehash the entire dataset when the directory grows or shrinks.
+
+1. **Hash Table and Directory**:
+   - **Hash Table**: Stores the actual data (or records) and is typically an array of buckets.
+   - **Directory**: A structure that helps in locating the correct bucket for a given record. It maintains pointers to the buckets and can dynamically grow or shrink.
+
+2. **Bucket**:
+   A bucket in extendable hashing is a container where records are stored. If a bucket becomes full, it splits into two buckets, and the directory adjusts accordingly.
+
+3. **Global Depth (GD)**:
+   The global depth indicates how many bits are used from the hash value to index the directory. For example, if the hash function produces 32-bit hashes and the global depth is 3, the directory will have 8 (2³) entries.
+
+4. **Local Depth (LD)**:
+   Local depth is the depth of individual buckets, representing the number of bits from the hash value used to index that particular bucket. The local depth of a bucket can be less than or equal to the global depth. When a bucket splits, its local depth increases.
+
+#### Process of Extendable Hashing
+
+##### 1. **Hash Function**:
+   A hash function generates a hash value from the key of the data item. The hash value is then split into two parts:
+   - **Global part**: The leftmost bits (determined by the global depth).
+   - **Local part**: The remaining bits, which are used to determine the appropriate bucket within the hash table.
+
+##### 2. **Directory and Buckets**:
+   - The directory starts with a small size (initially 2⁰ entries, where 0 is the global depth).
+   - Each directory entry points to a bucket. The number of entries in the directory corresponds to 2^global_depth.
+
+##### 3. **Insertion**:
+   - To insert a record, compute the hash value of the key.
+   - Use the global depth to extract the necessary number of leftmost bits from the hash value.
+   - This extracted value maps to a specific directory entry, which points to the corresponding bucket.
+   - If the bucket is not full, insert the record into the bucket.
+   - If the bucket is full, the bucket is split:
+     - The bucket is divided into two new buckets.
+     - The local depth of the bucket is incremented.
+     - The global depth is updated if necessary, expanding the directory if the local depth exceeds the global depth.
+
+##### 4. **Bucket Split**:
+   When a bucket becomes full and a split occurs:
+   - The directory may need to be resized (doubled) to accommodate the new buckets.
+   - The records in the bucket are redistributed into the new buckets based on the hash values.
+   - If a bucket splits, it results in an increase in its local depth. If the local depth exceeds the global depth, the global depth is increased, and the directory size is doubled.
+
+##### 5. **Deletion**:
+   - When a record is deleted, the corresponding bucket is checked to see if it becomes empty or underpopulated.
+   - If the bucket is no longer needed, it may be merged with a neighboring bucket, and the directory and local depths may be adjusted accordingly.
+
+##### 6. **Directory Expansion**:
+   The directory is expanded when the global depth exceeds the local depth of individual buckets. The directory size grows exponentially as the global depth increases, allowing the system to efficiently handle increasing data volumes.
+
+#### Advantages of Extendable Hashing
+
+- **Dynamic Growth**: The directory grows or shrinks as needed, ensuring that the system remains efficient as data volumes change.
+- **Efficient Splits**: Only the affected bucket and directory entries need to be adjusted when a split occurs, reducing the overhead of rehashing the entire table.
+- **Scalability**: The system can handle large datasets efficiently due to the dynamic nature of the directory and bucket structure.
+- **Reduced Collisions**: Since the directory is dynamically resized, the likelihood of collisions is minimized compared to static hashing techniques.
+
+#### Example
+
+Consider an extendable hash table with:
+- Global depth (GD) = 2 (i.e., 4 directory entries: 00, 01, 10, 11).
+- Each directory entry points to a bucket.
+
+- **Inserting Record 1**: Suppose the hash value for Record 1 is `1100`. The first two bits (`11`) point to directory entry 3, and the record is inserted into the bucket corresponding to entry 3.
+- **Inserting Record 2**: Suppose the hash value for Record 2 is `1010`. The first two bits (`10`) point to directory entry 2, and Record 2 is inserted into the bucket corresponding to entry 2.
+- **When a Bucket Overflows**: If one of the buckets becomes full, the bucket splits, and the global or local depth is adjusted as needed. The directory might expand, and the hash values are redistributed across the expanded directory.
+
+#### Disadvantages
+
+- **Space Overhead**: The directory can grow exponentially, potentially consuming significant memory as the global depth increases.
+- **Complexity**: Managing the directory and handling splits and merges can be complex, especially as the dataset grows.
+  
+Extendable hashing is a highly efficient method for handling dynamic datasets in a DBMS, particularly useful for indexing large amounts of data that don't fit entirely in memory. By dynamically adjusting the directory and bucket sizes based on the data, extendable hashing ensures both efficient storage and retrieval, with fewer collisions and more adaptable space management than static hashing methods.
+
+
+### Bitmap Indexes !!
+
+A **bitmap index** is a type of index that is especially effective in scenarios where the dataset has a limited number of distinct values (low cardinality) for a particular column. It uses a bitmap (a sequence of bits, 0s and 1s) to represent the presence or absence of a particular value in the column. Bitmap indexing is particularly useful in query optimization for conditions involving equality comparisons (e.g., `=`, `IN`, etc.) and for columns with low cardinality.
+
+1. **Bitmap**: A bitmap is a compact array of bits (0s and 1s), where each bit represents the presence or absence of a value in the dataset.
+   - For example, if a column has values `{A, B, C}`, a bitmap could represent which rows contain each of these values.
+   
+2. **Low Cardinality**: Bitmap indexes work best when the column values are limited and do not change frequently. Cardinality refers to the number of unique values in a column. If a column has a small number of distinct values (e.g., gender, boolean flags), a bitmap index is highly effective.
+   
+3. **Bitmap for Each Value**: For each distinct value in the column, a separate bitmap is created. The position of the bit indicates whether the value exists in the corresponding row of the table.
+
+Let's take a simple example of a table `EMPLOYEE` with the following data:
+
+| Emp_ID | Gender | Department |
+|--------|--------|------------|
+| 1      | M      | HR         |
+| 2      | F      | IT         |
+| 3      | M      | HR         |
+| 4      | F      | Finance    |
+| 5      | M      | IT         |
+
+For this table, let's create a **bitmap index** for the `Gender` and `Department` columns.
+
+#### Example 1: Bitmap Index for Gender Column
+
+- **Distinct Values**: `{M, F}` (Male and Female)
+- **Bitmaps**:
+   - One bitmap for `M` (Male)
+   - One bitmap for `F` (Female)
+
+Here’s how the bitmaps would look for the `Gender` column:
+
+| Emp_ID | Gender | M (Bitmap) | F (Bitmap) |
+|--------|--------|------------|------------|
+| 1      | M      | 1          | 0          |
+| 2      | F      | 0          | 1          |
+| 3      | M      | 1          | 0          |
+| 4      | F      | 0          | 1          |
+| 5      | M      | 1          | 0          |
+
+- **Bitmap for M (Male)**: `1, 0, 1, 0, 1`
+- **Bitmap for F (Female)**: `0, 1, 0, 1, 0`
+
+Each bit in the bitmap corresponds to the presence of the gender value (`M` or `F`) for the corresponding employee record.
+
+#### Example 2: Bitmap Index for Department Column
+
+- **Distinct Values**: `{HR, IT, Finance}`
+- **Bitmaps**:
+   - One bitmap for `HR`
+   - One bitmap for `IT`
+   - One bitmap for `Finance`
+
+Here’s how the bitmaps would look for the `Department` column:
+
+| Emp_ID | Department | HR (Bitmap) | IT (Bitmap) | Finance (Bitmap) |
+|--------|------------|-------------|-------------|------------------|
+| 1      | HR         | 1           | 0           | 0                |
+| 2      | IT         | 0           | 1           | 0                |
+| 3      | HR         | 1           | 0           | 0                |
+| 4      | Finance    | 0           | 0           | 1                |
+| 5      | IT         | 0           | 1           | 0                |
+
+- **Bitmap for HR**: `1, 0, 1, 0, 0`
+- **Bitmap for IT**: `0, 1, 0, 0, 1`
+- **Bitmap for Finance**: `0, 0, 0, 1, 0`
+
+Each bitmap corresponds to whether a specific employee works in that department.
+
+#### Query Optimization Using Bitmap Indexes
+
+##### Example Query 1: Select all employees who are Male (`Gender = M`)
+
+- **Bitmap for M**: `1, 0, 1, 0, 1`
+- This bitmap directly gives us the rows where `Gender = M`, so we can quickly retrieve the employee IDs `1, 3, and 5`.
+
+##### Example Query 2: Select all employees who work in IT (`Department = IT`)
+
+- **Bitmap for IT**: `0, 1, 0, 0, 1`
+- This bitmap directly indicates that employees with IDs `2` and `5` work in IT.
+
+##### Example Query 3: Select all Male employees who work in IT (`Gender = M AND Department = IT`)
+
+- Perform a **bitwise AND** between the `Gender = M` bitmap and the `Department = IT` bitmap:
+  
+  ```
+  Gender = M:   1, 0, 1, 0, 1
+  Department = IT: 0, 1, 0, 0, 1
+  ---------------------------
+  AND Result:    0, 0, 0, 0, 1
+  ```
+
+- The result `0, 0, 0, 0, 1` means only employee ID `5` satisfies both conditions.
+
+#### Benefits of Bitmap Indexes
+
+1. **Space Efficiency**: For columns with low cardinality, bitmap indexes are space-efficient as they use a compact binary representation.
+2. **Fast Query Performance**: Bitmap indexes allow fast retrieval of data because operations like AND, OR, and NOT can be efficiently performed on the bitmaps.
+3. **Optimized for Read-heavy Workloads**: Bitmap indexes are particularly suitable for environments with heavy read queries (e.g., decision support systems).
+4. **Efficient for Multiple Conditions**: Bitmap indexes perform well in queries involving multiple conditions on different columns.
+
+#### Drawbacks of Bitmap Indexes
+
+1. **Not Ideal for High Cardinality Columns**: Bitmap indexes do not perform well when a column has many distinct values (high cardinality), as the bitmaps would become large and inefficient.
+2. **Expensive for Write-heavy Workloads**: Bitmap indexes can be inefficient in situations where the table undergoes frequent updates, inserts, or deletes because updating bitmaps can be costly.
+3. **Bitmap Maintenance**: Bitmap indexes may require periodic rebuilding or maintenance in the case of frequent data changes.
+
+#### **So?.... well this is an awesome encoded way to represent data!!**
+
+As Prof. Usha Mohan from Stats 1/IITM BS calls coded representation !!! Reduces network traffic, hard to decode but awesome!
+
+Bitmap indexes are highly effective for querying columns with a small number of distinct values (low cardinality), allowing for efficient storage and fast query execution through bitwise operations. They are especially valuable in data warehousing and O.L.A.P systems where large-scale querying is common. However, their usefulness diminishes with high-cardinality columns or highly dynamic datasets.
