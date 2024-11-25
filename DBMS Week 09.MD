@@ -27,6 +27,12 @@ There are various types of indexes, each with its own internal structure and use
 - **Use case**: Used in situations where exact matching is the primary operation, such as lookups in key-value stores.
 
 ##### **Bitmap Index**
+
+```sql
+CREATE BITMAP INDEX Index_Name
+   ON Table_Name (Column_Name);
+```
+
 - **Structure**: A **bitmap index** uses bitmaps (bit arrays) to represent the presence or absence of a particular value in the indexed column.
 - **How it works**: For a column with a limited number of distinct values (e.g., gender with values "male" and "female"), a bitmap index will create a bitmap where each bit corresponds to a row, and the bit is set to `1` if the row contains the value, and `0` otherwise.
 - **Use case**: Bitmap indexes are efficient for columns with low cardinality (few distinct values) and are often used in data warehousing scenarios.
@@ -1639,7 +1645,7 @@ A **B+ Tree** is an advanced version of the **B-Tree**, which is commonly used i
 - All data (or values) are stored in the **leaf nodes**, whereas internal nodes only store **keys**.
 - The **leaf nodes** are often linked together to form a **linked list**, allowing for efficient range queries and sequential access.
 - Internal node contains atleast $n/2$ child pointers, excluding root node and at most $n$ child pointers
-- Leaf node contains atleast $\dfrac{n}{2}$ record pointers and $\dfrac{n}{2}$ key values
+- Leaf node contains atleast $\lceil{\dfrac{n}{2}} \rceil$ record pointers and $\dfrac{n}{2}$ key values
   - at most $n$ record pointers and $n$ key values
 - one block/leaf node pointer $P$ to point to next leaf node/block. This is for linear search
 - Internal node means non Leaf node. Root is a special internal node!
@@ -2367,3 +2373,532 @@ Each bitmap corresponds to whether a specific employee works in that department.
 As Prof. Usha Mohan from Stats 1/IITM BS calls coded representation !!! Reduces network traffic, hard to decode but awesome!
 
 Bitmap indexes are highly effective for querying columns with a small number of distinct values (low cardinality), allowing for efficient storage and fast query execution through bitwise operations. They are especially valuable in data warehousing and O.L.A.P systems where large-scale querying is common. However, their usefulness diminishes with high-cardinality columns or highly dynamic datasets.
+
+## [L9.5: Module 45 Indexing and Hashing/5: Index Design (33:57)](https://youtu.be/oZetRAwYmrw)
+
+### Index Command
+
+```sql
+--normal index
+CREATE INDEX IndexName ON Employee(EmployeeID, EmployeeName);
+
+-- make the search key Candidate Key
+CREATE UNIQUE INDEX IndexName ON Employee(EmployeeID, EmployeeName);
+
+
+-- drop index
+DROP INDEX IndexName;
+```
+
+In PostgreSQL, the `CREATE INDEX` command is used to create an index on one or more columns of a table. Indexes can improve query performance, especially for read-heavy operations. However, creating unnecessary indexes can slow down write operations (INSERT, UPDATE, DELETE), so it's important to use them wisely.
+
+```sql
+CREATE INDEX index_name ON table_name (column_name [ASC|DESC] [, ...]);
+```
+
+#### Common Options and Clauses for `CREATE INDEX`
+
+1. **Basic Syntax**:
+   - `CREATE INDEX index_name`: Defines the name of the index.
+   - `ON table_name`: Specifies the table on which the index is created.
+   - `(column_name)`: Specifies one or more columns to index.
+   - `ASC|DESC`: Defines the sorting order for the index. `ASC` is default (ascending order), while `DESC` indicates descending order.
+
+   **Example**:
+   ```sql
+   CREATE INDEX idx_users_name ON users (name);
+   ```
+
+2. **UNIQUE Index**:
+   A unique index ensures that the indexed column(s) contain only unique values. This can be used as a constraint.
+
+   **Syntax**:
+   ```sql
+   CREATE UNIQUE INDEX index_name ON table_name (column_name);
+   ```
+
+   **Example**:
+   ```sql
+   CREATE UNIQUE INDEX idx_users_email ON users (email);
+   ```
+   This will enforce that every value in the `email` column is unique.
+
+3. **CONCURRENTLY**:
+   The `CONCURRENTLY` option allows you to create an index without locking the table. This is useful in production environments where the table is frequently accessed. However, creating an index concurrently may take longer.
+
+   **Syntax**:
+   ```sql
+   CREATE INDEX CONCURRENTLY index_name ON table_name (column_name);
+   ```
+
+   **Example**:
+   ```sql
+   CREATE INDEX CONCURRENTLY idx_users_name ON users (name);
+   ```
+   This creates the index without locking the table, allowing concurrent operations.
+
+4. **WITH (fillfactor = value)**:
+   The `WITH` clause allows you to specify options for index storage. One common option is `fillfactor`, which sets the percentage of space to leave on each index page when creating the index. Lowering the `fillfactor` can improve performance for certain workloads, such as tables that are frequently updated.
+
+   **Syntax**:
+   ```sql
+   CREATE INDEX index_name ON table_name (column_name) WITH (fillfactor = 70);
+   ```
+
+   **Example**:
+   ```sql
+   CREATE INDEX idx_users_name ON users (name) WITH (fillfactor = 70);
+   ```
+
+5. **WHERE (Partial Index)**:
+   You can create an index on a subset of rows, which is known as a partial index. This can be useful if you know that only a small portion of the data is frequently queried, thus reducing the index size and increasing performance for those queries.
+
+   **Syntax**:
+   ```sql
+   CREATE INDEX index_name ON table_name (column_name) WHERE condition;
+   ```
+
+   **Example**:
+   ```sql
+   CREATE INDEX idx_active_users ON users (name) WHERE status = 'active';
+   ```
+
+   This will create an index on the `name` column but only for rows where `status = 'active'`.
+
+6. **USING (Index Type)**:
+   PostgreSQL supports several types of indexes, such as `btree`, `hash`, `gist`, `gin`, and others. The default index type is `btree`. You can specify a different index type using the `USING` clause.
+
+   **Syntax**:
+   ```sql
+   CREATE INDEX index_name ON table_name USING index_type (column_name);
+   ```
+
+   **Example**:
+   ```sql
+   CREATE INDEX idx_users_hash_email ON users USING hash (email);
+   ```
+   In this example, a hash index is created on the `email` column.
+
+   Common index types:
+   - `btree`: Default index type, efficient for equality and range queries.
+   - `hash`: Useful for equality comparisons, but less flexible than `btree`.
+   - `gist`: Used for geometric, full-text search, or other non-scalar data types.
+   - `gin`: Useful for indexing arrays, full-text search, and JSONB columns.
+   - `spgist`: Used for special types like geometric data.
+   - `brin`: Block-range index, typically used for large, ordered datasets.
+
+7. **NULLS FIRST / NULLS LAST**:
+   When creating an index with multiple columns, you can specify whether NULL values should be placed first or last in the order. By default, NULLs are treated as the highest values in ascending order, but this behavior can be changed.
+
+   **Syntax**:
+   ```sql
+   CREATE INDEX index_name ON table_name (column_name NULLS FIRST | NULLS LAST);
+   ```
+
+   **Example**:
+   ```sql
+   CREATE INDEX idx_users_name_nulls_last ON users (name NULLS LAST);
+   ```
+
+8. **Include Additional Columns (Covering Index)**:
+   You can create an index that includes non-key columns (covering index) to improve query performance by including the columns that are often selected together with the indexed column(s). These columns are stored in the index itself, so they can be returned without needing to access the table.
+
+   **Syntax**:
+   ```sql
+   CREATE INDEX index_name ON table_name (column_name) INCLUDE (other_column);
+   ```
+
+   **Example**:
+   ```sql
+   CREATE INDEX idx_users_name_email ON users (name) INCLUDE (email);
+   ```
+   In this example, the index includes the `email` column, so queries using `name` and `email` can benefit from the index.
+
+9. **Using the `COVERING` Keyword for Full Text Search Index**:
+   PostgreSQL allows you to create full-text search indexes using `GIN` or `GiST`. In such cases, `COVERING` is used to improve search efficiency.
+
+   **Example**:
+   ```sql
+   CREATE INDEX idx_ft_search ON documents USING gin(to_tsvector('english', content));
+   ```
+
+   This creates a full-text search index on the `content` column of the `documents` table.
+
+10. **Tablespace**:
+   You can specify the tablespace where the index will be stored. This can be useful if you want to control disk usage or optimize storage by placing indexes on a different disk or partition.
+
+   **Syntax**:
+   ```sql
+   CREATE INDEX index_name ON table_name (column_name) TABLESPACE tablespace_name;
+   ```
+
+   **Example**:
+   ```sql
+   CREATE INDEX idx_users_name ON users (name) TABLESPACE fast_disk;
+   ```
+
+11. **CLUSTER**:
+   You can optionally cluster the table based on the index, which physically arranges the table rows in the order of the index. This can improve performance for certain types of queries but requires periodic maintenance.
+
+   **Syntax**:
+   ```sql
+   CREATE INDEX index_name ON table_name (column_name) CLUSTER;
+   ```
+
+   **Example**:
+   ```sql
+   CREATE INDEX idx_users_name_clustered ON users (name) CLUSTER;
+   ```
+
+#### COMPUTE STATISTICS
+
+When PostgreSQL creates an index, it also collects statistics about the distribution of values in the indexed columns. These statistics are crucial because the PostgreSQL query planner uses them to estimate the cost of different query execution plans. If PostgreSQL does not have sufficient statistics about the index, the planner may make suboptimal decisions, leading to poor query performance.
+
+The `COMPUTE STATISTICS` option explicitly requests PostgreSQL to gather additional statistics for a particular index when creating or rebuilding it.
+
+```sql
+CREATE INDEX index_name ON table_name (column_name) COMPUTE STATISTICS;
+```
+
+Alternatively, it can be used when **rebuilding** an index with the `REINDEX` command:
+
+```sql
+REINDEX INDEX index_name COMPUTE STATISTICS;
+```
+
+- **Index-Level Statistics**: Normally, PostgreSQL gathers basic statistics about the columns involved in the index (like distinct values and NULL values). However, when you use `COMPUTE STATISTICS`, it can gather more detailed and sophisticated statistics on the distribution of indexed values.
+  
+- **What Does It Collect?**
+  - **Histogram of Values**: It can gather detailed histograms or distributions of values in the indexed column(s). This allows PostgreSQL to make better guesses about selectivity (how many rows are expected to match a query condition).
+  - **Correlation Data**: PostgreSQL can gather data about the correlation between the indexed column values and the physical ordering of the table rows. This can help in situations where the query planner needs to determine if an index scan is more efficient than a sequential scan.
+
+- **When to Use `COMPUTE STATISTICS`**:
+  - **Large Tables**: If the indexed column contains a large number of distinct values or is highly skewed, `COMPUTE STATISTICS` helps the planner understand the distribution better.
+  - **Frequently Updated Indexes**: For indexes on columns that are frequently updated (e.g., `timestamp`, `status`, etc.), gathering detailed statistics can make a significant difference.
+  - **Complex Queries**: If your queries often include complex conditions that depend on the specific distribution of indexed values (e.g., filtering or sorting), having better statistics will result in improved execution planning.
+
+```sql
+SELECT * FROM users WHERE email = 'example@example.com';
+```
+
+- Without detailed statistics, the PostgreSQL query planner might guess that an index scan on the `email` column isn't very selective and might opt for a sequential scan instead, even if the `email` column is indexed.
+  
+- However, if you use `COMPUTE STATISTICS`, PostgreSQL can gather more detailed information about how the values are distributed in the `email` column (e.g., whether a particular email is common or rare), leading the planner to make a more informed decision. This could result in it choosing the index scan instead of the sequential scan, improving performance.
+
+#### Performance Considerations
+
+- **Cost of `COMPUTE STATISTICS`**: The `COMPUTE STATISTICS` operation may take additional time and resources, especially for large tables or indexes with many distinct values. Therefore, it should be used selectively, such as when you expect significant performance gains from the updated statistics.
+  
+- **Use in Maintenance**: In many cases, `COMPUTE STATISTICS` is not something that needs to be used frequently, as PostgreSQL generally updates index statistics automatically through the `ANALYZE` command. However, it can be beneficial when rebuilding indexes (e.g., after major data updates or bulk insertions).
+
+
+#### Bitmap Index
+
+In PostgreSQL, a **Bitmap Index** is a type of index that uses a bitmap (a series of bits) to represent the existence (or non-existence) of values in the indexed columns. This kind of index is typically used for columns that have a **low cardinality**, meaning the column has a small number of distinct values compared to the number of rows in the table. Bitmap indexes are useful in scenarios where multiple column conditions are being used together in queries (e.g., ANDing multiple conditions on indexed columns).
+
+However, PostgreSQL does not natively support bitmap indexes in the same way it supports traditional index types like `BTREE` or `HASH`. Instead, PostgreSQL allows the creation of **Bitmap Index Scans**—a type of scan where individual indexes (of any type) are combined using bitmap operations. This is a strategy used by PostgreSQL's query planner to optimize the execution of queries with multiple conditions on indexed columns.
+
+1. **Bitmap Indexing Mechanism**:
+   - A bitmap is a sequence of bits (0s and 1s), where each bit corresponds to a row in the table.
+   - When a value is present in a given row, the corresponding bit is set to 1; if the value is absent, it is set to 0.
+   - Multiple bitmap indexes on different columns can be combined using bitwise operations (AND, OR, etc.) to efficiently find rows that match all or some of the indexed conditions.
+
+2. **Bitmap Index Scan**:
+   A **Bitmap Index Scan** is a scan method used by PostgreSQL to combine multiple bitmap indexes, creating a single bitmap that represents the result of applying all the conditions in a query. This technique can significantly improve query performance in certain scenarios.
+
+#### Bitmap Index Use Cases
+
+Bitmap indexes are particularly useful in the following scenarios:
+
+- **Low Cardinality Columns**: Bitmap indexes are most effective on columns with a low number of distinct values (low cardinality). For example, a column that stores gender (`'M'`, `'F'`) or boolean values (`TRUE`, `FALSE`).
+  
+  Example:
+  ```sql
+  CREATE INDEX idx_users_gender ON users (gender);
+  ```
+
+- **Complex Queries**: Bitmap indexes are useful in queries that involve multiple conditions across columns. They are often employed in queries using `AND` or `OR` operations between columns.
+
+  Example:
+  ```sql
+  SELECT * FROM users WHERE gender = 'M' AND status = 'active';
+  ```
+
+- **Combination of Indexes**: When there are multiple indexes on different columns, PostgreSQL may decide to combine the bitmaps generated by those indexes. This allows PostgreSQL to efficiently answer queries that match multiple columns.
+
+#### How Bitmap Indexes Work in PostgreSQL
+
+Although PostgreSQL doesn't have a direct `CREATE BITMAP INDEX` command, it can still use bitmap indexes internally during query execution. The **Bitmap Index Scan** is used in conjunction with other index types (such as `BTREE`, `GIN`, or `GiST`), and PostgreSQL may choose to use a bitmap to combine multiple index conditions during query execution. This is done through a **Bitmap Heap Scan**.
+
+- **Bitmap Heap Scan**: After creating bitmaps for each index condition, PostgreSQL performs a "heap scan" of the table, using the bitmap to determine which rows should be returned based on the query conditions.
+
+#### Example of Bitmap Index Scans in Action
+
+Let’s say you have a `users` table with columns `gender`, `status`, and `age`. You create indexes on `gender` and `status`:
+
+```sql
+CREATE INDEX idx_users_gender ON users (gender);
+CREATE INDEX idx_users_status ON users (status);
+```
+
+Now, if you execute a query that involves both `gender` and `status` conditions, PostgreSQL might use a **Bitmap Index Scan** to combine the indexes on `gender` and `status`.
+
+```sql
+SELECT * FROM users WHERE gender = 'M' AND status = 'active';
+```
+
+PostgreSQL will do the following:
+1. It will scan the `gender` index and create a bitmap where the bits corresponding to rows with `gender = 'M'` are set to 1.
+2. It will scan the `status` index and create a bitmap where the bits corresponding to rows with `status = 'active'` are set to 1.
+3. It will combine the two bitmaps (using an **AND operation**), resulting in a bitmap that identifies rows where both conditions are satisfied.
+4. PostgreSQL will perform a **Bitmap Heap Scan** to fetch the rows corresponding to the set bits in the combined bitmap.
+
+### Advantages of Bitmap Indexes
+
+1. **Efficient Multi-Column Searches**:
+   - Bitmap indexes are extremely efficient when you need to filter data on multiple columns with conditions. By combining bitmaps from multiple indexes, PostgreSQL can quickly narrow down the matching rows.
+
+2. **Low Cardinality**:
+   - For columns with a small number of distinct values (e.g., gender, status, or boolean flags), bitmap indexing can be very space-efficient and fast.
+
+3. **Improved Performance for Complex Queries**:
+   - Bitmap index scans are particularly effective for complex queries that require matching on several conditions across multiple indexed columns. This can reduce the overall query execution time compared to sequentially scanning the entire table.
+
+4. **Reduced IO**:
+   - Since bitmaps are compact and efficient, they can significantly reduce the amount of data PostgreSQL needs to read from the disk compared to scanning the entire table or multiple indexes individually.
+
+#### Limitations of Bitmap Indexes
+
+1. **High Cardinality Columns**:
+   - Bitmap indexes are not ideal for columns with a high cardinality (i.e., columns with many distinct values, like `email`, `name`, or `timestamp`). The bitmap can become very large and inefficient in terms of both storage and computation.
+
+2. **Overhead for Updates and Inserts**:
+   - Bitmap indexes can be expensive to maintain on frequently updated tables, particularly when rows are inserted, updated, or deleted. This is because the bitmap needs to be recalculated for each operation.
+
+3. **Memory Usage**:
+   - While bitmaps are space-efficient for low cardinality data, they can consume a lot of memory when dealing with large datasets, especially when many conditions are combined.
+
+4. **Not Suitable for All Queries**:
+   - For simple queries that filter on a single column or a high-cardinality column, a bitmap index scan will generally not be the best option. PostgreSQL will likely use more traditional index types like `BTREE` in those cases.
+
+
+#### Example from flisdb
+
+```
+> SELECT * FROM players;
+
+ player_id |   name    |    dob     | jersey_no | team_id
+-----------+-----------+------------+-----------+---------
+ P1001     | Rudra     | 2003-05-01 |        99 | T0001
+ P1002     | Advik     | 2004-06-01 |        89 | T0001
+ P1003     | Adi       | 2003-05-07 |        79 | T0001
+ P1004     | veer      | 2003-08-12 |        69 | T0001
+ P1005     | Ahmed     | 2003-09-13 |        49 | T0001
+ P1006     | Viyan     | 2002-10-14 |        49 | T0001
+
+ SELECT * FROM PLAYERS WHERE player_id = 'P1006' AND jersey_no=49 AND team_id='T0001';
+
+ player_id = 'P1006'    => 0,0,0,0,0,1
+ jersey_no=49           => 0,0,0,0,1,1
+ team_id='T0001'        => 1,1,1,1,1,1
+
+ if you AND them        => 0,0,0,0,0,1
+```
+
+#### Composite Search Key Index
+
+*ORDER of attributes is important from left to right*  
+
+say you have a relation $(a_1, a_2)$ and $(b_1, b_2)$
+
+Lexicographic Ordering is $(a_1, a_2) < (b_1, b_2)$ ONLY IF
+
+$a_1 < b_1 \ OR \ (a_1 == b_1 \ AND \ a_2 < b_2)$  
+
+- $(1,2) < (1,3)$
+- $(1,3) < (2,3)$
+- $(4,3) > (3,1)$
+- Order is important
+- So index with (dept_name, salary) is **different** from (salary, dept_name)
+
+
+#### Privileges to Create Index
+
+To create Index
+1. you must own the TABLE or have INDEX object privilege.
+2. The schema that contains the index must also have a quota for the table space.
+   1. or UNLIMITED TABLESPACE system privilege
+3. Function based indexes require QUERY_REWRITE privilege and QUERY_REWRITE_ENABLED initialization parameters set to be TRUE
+
+### General Rules for Indexing
+
+Indexes are critical for optimizing query performance. Indexes are data structures that allow for fast retrieval of rows based on the values of one or more columns. However, their use and creation are governed by a set of rules and best practices to ensure they are effective, efficient, and do not hinder the overall performance of the system.
+
+#### 1. **Indexing Columns Used in `WHERE`, `JOIN`, and `ORDER BY` Clauses**
+   - **Rule**: Indexes should be created on columns that are frequently used in `WHERE` clauses, `JOIN` conditions, and `ORDER BY` clauses to speed up query execution.
+   
+   **Reason**: These columns are used in filter conditions (e.g., `WHERE`), which directly benefit from indexed lookups. If a column is regularly involved in sorting (`ORDER BY`) or joining (`JOIN`), indexing can reduce the need for full table scans, significantly improving query performance.
+   
+   **Example**:
+   ```sql
+   CREATE INDEX idx_users_email ON users (email);  -- For fast lookups in WHERE
+   CREATE INDEX idx_orders_date ON orders (order_date);  -- For efficient sorting
+   ```
+
+#### 2. **Index Only Columns with High Cardinality**
+   - **Rule**: Indexes should be created on columns with **high cardinality** (i.e., columns that contain many distinct values). Indexes on low cardinality columns (e.g., gender, boolean values) might not improve performance.
+   
+   **Reason**: High cardinality columns (such as `user_id` or `email`) have a large number of distinct values, making them ideal candidates for indexing. A low cardinality column (e.g., `status` with values like "active" and "inactive") can lead to inefficient indexes, as the database would have to scan many rows even with an index in place.
+   
+   **Example**:
+   ```sql
+   CREATE INDEX idx_users_userid ON users (user_id);  -- High cardinality column
+   ```
+
+#### 3. **Avoid Over-Indexing**
+   - **Rule**: Avoid creating too many indexes on a table, as it can negatively impact performance, especially for data modification operations (INSERT, UPDATE, DELETE).
+   
+   **Reason**: While indexes speed up query reads, they come with overhead. Each time a row is inserted, updated, or deleted, the database must also update the corresponding indexes. Too many indexes can slow down write operations and increase storage requirements.
+   
+   **Best Practice**: Only index the columns that are frequently used in query predicates (filters) or sorting. Periodically assess the indexes to remove any redundant ones.
+   
+   **Example**:
+   ```sql
+   -- Over-indexing with redundant indexes (not recommended)
+   CREATE INDEX idx_users_email ON users (email);
+   CREATE INDEX idx_users_name ON users (name);  -- If email is enough, avoid creating this
+   ```
+
+#### 4. **Composite Indexes for Multiple Columns**
+   - **Rule**: When a query filters or sorts based on multiple columns, creating a **composite index** (an index on multiple columns) is often more efficient than creating individual indexes on each column.
+   
+   **Reason**: A composite index can speed up queries that involve conditions on multiple columns simultaneously. The order of the columns in the composite index matters—queries that match the leading columns of the index benefit the most.
+   
+   **Example**:
+   ```sql
+   CREATE INDEX idx_users_name_status ON users (name, status);  -- Composite index
+   ```
+   
+   In this example, a query filtering on both `name` and `status` will benefit more from this composite index than having two separate indexes on `name` and `status`.
+
+#### 5. **Use Unique Indexes to Enforce Uniqueness**
+   - **Rule**: Use **unique indexes** to enforce uniqueness constraints on columns that must have unique values, such as primary keys or unique fields like email addresses.
+   
+   **Reason**: A unique index ensures that no two rows in a table can have the same value for the indexed column(s). It provides both performance benefits (quick lookups) and data integrity by preventing duplicate entries.
+   
+   **Example**:
+   ```sql
+   CREATE UNIQUE INDEX idx_users_email_unique ON users (email);  -- Enforces uniqueness
+   ```
+
+#### 6. **Clustered Indexes and Table Organization**
+   - **Rule**: A **clustered index** determines the physical order of data storage in a table. A table can only have one clustered index, and it should be created on the column that is most frequently used for range queries or sorting.
+   
+   **Reason**: A clustered index organizes the data rows themselves according to the index. This can make range queries and sorting operations more efficient since the data is stored in the same order as the index. However, it is important to choose the correct column for the clustered index, as it impacts the physical layout of the table.
+   
+   **Example**:
+   ```sql
+   CREATE CLUSTER idx_users_userid ON users (user_id);  -- Clustered index on user_id
+   ```
+
+   **Note**: In PostgreSQL, the `CLUSTER` command is used to physically reorder a table based on an index. A clustered index is not automatically updated with each insert, so the table may need to be reclustered periodically.
+
+#### 7. **Use Indexes for Query Performance, but Not for Everything**
+   - **Rule**: Not every query will benefit from indexes. Indexes are most effective for read-heavy operations (SELECTs), but they are not always beneficial for all queries, especially those that involve complex joins or subqueries.
+   
+   **Reason**: Indexes help with query performance when they are used for filtering or sorting, but they might not improve performance for complex queries or operations like full-table scans, which require accessing a large portion of the table. Additionally, unnecessary indexes can slow down data modification operations (INSERT/UPDATE/DELETE).
+   
+   **Example**:
+   - Indexes are not beneficial for queries that read the entire table, such as:
+     ```sql
+     SELECT * FROM users;  -- No need for an index since the whole table is being scanned.
+     ```
+
+### Ground rules for indexing
+
+#### Rule 0: Indexes lead to Access-Update Tradeoff
+   - have index in specific field 
+     - for better performance and reduced updation/insertion
+     - for lesser space usage
+     - reduced memory use
+
+#### Rule 1: Index the Correct Tables
+   - Create index if you want to retrieve less than 15% of all rows in a table.
+   - Index is good when values are distinct
+   
+#### Rule 2: Index the Correct Columns
+   - Columns have relative unique values
+   - regular index is good when there are wide range of values
+   - bitmap indexes are good when there are small range of boolean convertible values
+   - NULL values cannot be Indexed
+     - `WHERE COL_X IS NOT NULL` will never use the index
+     - To use the index, you need to have some value that is not NULL.
+       - WHERE COL_X > $-9.99 \times 10^{125}$ will use index
+   - column types like `LONG`, `BLOB` (LONG RAW is deprecated) cannot be indexed
+   - 
+#### Rule 3: Limit the Number of Indexes for Each Table
+   - If the table is read-only you can use a lot of indexes
+   - If a table has a few 100 records you may not need an index
+   - When rows are inserted, updated, deleted all indexes of table should be updated. But for column updates, only column index should be updated.
+   - Heavily updated tables should use fewer indexed
+#### Rule 4: Choose the Order of Columns in Composite Indexes
+   - Order of columns in index can affect performance
+     - order the columns in order of decreasing order of usage. Heavily used columns come first
+     - If you have a vendor part number relation/table where few vendors have lots of parts, then the composite index should be `(part_id, vendor_id)`
+#### Rule 5: Gather Statistics to Make Index Usage More Accurate
+
+   - COMPUTE STATISTICS in CREATE INDEX
+   - DBMS_STATS.GATHER_TABLE_STATISTICS
+   - DBMS_STATS.GATHER_SCHEMA_STATISTICS
+#### Rule 6: Drop Indexes That Are No Longer Required
+   - DROP INDEX IndexName
+
+
+
+## [Tutorial 9.1 - B Trees (15:04)](https://youtu.be/sNjeVWiAaZ8)
+
+1. Inside a `Node` the keys are stored in order
+   1. $K_1 < K_2 < K_3 .... < K_{q - 1}$
+   2. $P_{r1}$, $P_{r2}$, $P_{r3}$.....$P_{r(q-1)}$ are `RECORD/DATA POINTERS`
+   3. $Pb_{1}$, $Pb_{2}$ ..... $Pb_{q}$ are `BLOCK POINTERS` or `CHILD POINTERS`
+   4. $<K_1, P_{r1}>$ is a Key-Value-Pointer tuple.
+2. In a p-order BTree
+   1. Max Child Pointers ($Pb_1$) is `q` and $q\le p$
+   2. Max Keys or Key-Value-Pointer Tuples is `p - 1`
+3. Any key on left of $Pb_i$ must be lesser than $Pb_i$
+4. Any key on right of $Pb_i$ must be greater than $Pb_i$
+5. If $Pb_i$ is pointing to `X` then $K_{i-1} < X < K_{i}$
+
+
+#### Algorithm
+
+1. Fill up the root node with as many values as `order - 1`
+2. Take next item, place in between higher than and lower-than tuples.
+3. If split required, split it
+   1. Stop if no more inputs.
+4. go to step 2
+
+
+### [Tutorial 9.2 - $B^+$ Trees (17:19)](https://youtu.be/IbXHaBr9mNg)
+
+In a P-order B+ Tree there are:
+   1. $q \le p$ `Block/Tree Pointers`
+   2. $K_1$, $K_2$, $K_3$ ... $K_{q-1}$ are keys
+      1. Within each node $K_1 < K_2 < K_3 ... < K_{q-1}$
+   3. $P_{b1}$, $P_{b2}$, $P_{b3}$ ... $P_{b(q-1)}$, $P_{bq}$ are Block Pointers or Child Pointers
+   4. If $Pb_i$ is pointing to `X` then $K_{i-1} \le X < K_{i}$
+      1. Why $\le$ ? Because keys can be repeated
+
+**Max Number of Child/Block Pointers** = $p$  
+**Max Number of Keys** = $p -1$  
+**Max Keys Leaf Node** = $p -1$  
+**Max Data Pointer Leaf Node** = $p -1$  
+**Number of Block Pointer in leaf node** = 1
+
+So a leaf node looks like
+
+$(K_1, P_{r1})$, $(K_2, P_{r2})$, .... , $(K_(q-1), P_{r(q-1)}), P_{next}$
+
+#### 4-Order $B^+$ Tree
+- **Max Child Pointers** = 4
+- **Max Keys** = 3
