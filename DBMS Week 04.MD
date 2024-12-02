@@ -42,8 +42,8 @@ Given two tables, `employees` and `departments`:
 
 **Relational Algebra**:
 
-1. Selection: \( \sigma_{dept\_id=1}(employees) \)
-2. Projection: \( \pi_{name}(\sigma_{dept\_id=1}(employees)) \)
+1. Selection: $\sigma_{dept\_id=1}(employees)$
+2. Projection: $\pi_{name}(\sigma_{dept\_id=1}(employees))$
 
 #### 2. Tuple Relational Calculus
 
@@ -701,8 +701,8 @@ $$
 $$
 
 Where:
-- \( t \) is a tuple variable.
-- \( P(t) \) is a predicate that describes the conditions that the tuples must satisfy.
+- $t$ is a tuple variable.
+- $P(t)$ is a predicate that describes the conditions that the tuples must satisfy.
 
 #### Example Database Schema
 
@@ -749,7 +749,7 @@ $$
 \{s.Name | s \in Students \land s.age > 21\}
 $$
 
-This means: "Select the Name of tuple \( s \) from the Students relation."
+This means: "Select the Name of tuple $s$ from the Students relation."
 
 ##### 2. Find Students Major in Computer Science
 
@@ -759,7 +759,7 @@ $$
 \{ s | \text{Students}(s) \land s.Major = 'CS' \}
 $$
 
-This means: "Select tuple \( s \) from Students where the Major of \( s \) is 'CS'."
+This means: "Select tuple $s$ from Students where the Major of $s$ is 'CS'."
 
 ##### 3. Retrieve the Student IDs of Students Enrolled in a Specific Course
 
@@ -779,7 +779,7 @@ $$
 \{ e_1.StudentID | \text{Enrollments}(e_1) \land \exists e_2 (\text{Enrollments}(e_2) \land e_1.StudentID = e_2.StudentID \land e_1.CourseID \neq e_2.CourseID) \}
 $$
 
-This means: "Select StudentID \( e_1 \) from Enrollments where there exists another enrollment \( e_2 \) for the same student in a different course."
+This means: "Select StudentID $e_1$ from Enrollments where there exists another enrollment $e_2$ for the same student in a different course."
 
 ##### 5. Retrieve All Courses Taken by a Specific Student
 
@@ -789,7 +789,7 @@ $$
 \{ c | \exists e (\text{Enrollments}(e) \land e.StudentID = 1 \land \text{Courses}(c) \land c.CourseID = e.CourseID) \}
 $$
 
-This means: "Select course \( c \) such that there exists an enrollment \( e \) for StudentID 1, and \( c \) matches the CourseID of that enrollment."
+This means: "Select course $c$ such that there exists an enrollment $e$ for StudentID 1, and $c$ matches the CourseID of that enrollment."
 
 Tuple Relational Calculus provides a way to express queries based on the properties of tuples in a database.
 
@@ -845,7 +845,7 @@ $$
 \{ s.Name | \text{Students}(s) \}
 $$
 
-**Explanation**: This expression is safe because the variable \( s \) is bounded by the Students relation, ensuring a finite set of results.
+**Explanation**: This expression is safe because the variable $s$ is bounded by the Students relation, ensuring a finite set of results.
 
 2. **Find Students with Major in Computer Science**
 
@@ -853,7 +853,7 @@ $$
 \{ s | \text{Students}(s) \land s.Major = 'CS' \}
 $$
 
-**Explanation**: This is safe as well, because \( s \) is again bounded by the Students relation.
+**Explanation**: This is safe as well, because $s$ is again bounded by the Students relation.
 
 3. **Find Enrolled Students for a Specific Course**
 
@@ -861,7 +861,7 @@ $$
 \{ e.StudentID | \text{Enrollments}(e) \land e.CourseID = 101 \}
 $$
 
-**Explanation**: This expression is safe since \( e \) is bounded by the Enrollments relation.
+**Explanation**: This expression is safe since $e$ is bounded by the Enrollments relation.
 
 #### Unsafe Expressions
 
@@ -879,7 +879,7 @@ $$
 \{ s | s \text{ is a tuple} \} 
 $$
 
-**Explanation**: This expression is unsafe because it introduces a free variable \( s \) without any bounding condition, potentially leading to an infinite number of tuples.
+**Explanation**: This expression is unsafe because it introduces a free variable $s$ without any bounding condition, potentially leading to an infinite number of tuples.
 
 ![Safety of TRC Expressions](imgs/24-trc-safety.png)
 
