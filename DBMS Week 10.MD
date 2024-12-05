@@ -113,6 +113,7 @@ To address these challenges, modern DBMSs implement **locking mechanisms** and *
 
 1. **Locking**:
    - DBMSs use locks to control access to data, preventing conflicts between transactions.
+   - Locking guarantees *Isolation* 
    - Types of locks:
      - **Shared locks** (S-locks): Allow transactions to read data but not modify it.
      - **Exclusive locks** (X-locks): Prevent other transactions from reading or modifying data.
@@ -1199,3 +1200,373 @@ Every conflict serializable schedule is also a view serializable.
 4. Every conflict serializable schedule is also a view serializable.
 5. View equivalence is purely based on reads and writes alone
 6. A schedule is view serializable if it is view equivalent to serial schedule.
+
+## [L10.4 (Module 49): Concurrency Control/1 (30:39)](https://youtu.be/VcYdCPbyWX0)
+
+### Lock Mechanisms
+In a Database Management System (DBMS), **lock mechanisms** are used to manage concurrent access to data in a way that ensures data consistency, integrity, and isolation during transactions. When multiple transactions access the same data simultaneously, there is a risk of conflicts, such as reading stale data, modifying data inconsistently, or causing lost updates. Locking mechanisms help prevent such issues by controlling how transactions interact with the data.
+
+Here are the key components and types of locks used in DBMS:
+
+#### 1. **Purpose of Locks**
+   - **Concurrency Control**: Locking ensures that multiple transactions can run concurrently without interfering with each other.
+   - **Data Integrity**: Prevents transactions from making conflicting changes to the data.
+   - **Isolation**: Ensures that the results of a transaction are not visible to other transactions until it is complete.
+
+#### 2. **Types of Locks**
+   - **Shared Lock (S-Lock)**: A shared lock allows multiple transactions to read a piece of data simultaneously but prevents them from modifying it. For example, if a transaction has a shared lock on a record, other transactions can also acquire a shared lock and read the record, but no transaction can update it.
+   - **Exclusive Lock (X-Lock)**: An exclusive lock is used when a transaction wants to modify data. It prevents other transactions from either reading or modifying the data until the lock is released. A transaction holding an exclusive lock can write to the data, but no other transaction can access it in any way.
+   - **Intent Lock**: These are special locks used in hierarchical locking systems. They indicate a transaction’s intention to lock a lower-level resource. For example, an **Intent Shared Lock (IS)** signals that the transaction intends to acquire shared locks on some of the data items in a given range, while an **Intent Exclusive Lock (IX)** signals an intention to acquire exclusive locks on certain items within a set of resources.
+
+#### 3. **Lock Granularity**
+   - **Database Level Locking**: Locking the entire database, ensuring that no other transactions can access any data in the database until the lock is released. This is less efficient for systems with high concurrency.
+   - **Table Level Locking**: Locking an entire table. This prevents any transaction from modifying or reading the table’s data concurrently.
+   - **Row Level Locking**: Locking individual rows in a table. This is more granular and allows for higher concurrency, as different transactions can access different rows at the same time.
+   - **Column Level Locking**: Locking specific columns within a row, which is even more granular, though not commonly implemented in all DBMSs.
+
+#### 4. **Locking Protocols**
+   Locking protocols define how locks are acquired and released during the lifecycle of a transaction to ensure that the system doesn’t suffer from issues like **deadlocks** or **lost updates**.
+
+   - **Two-Phase Locking (2PL)**: This protocol ensures serializability by enforcing that all locks are acquired during the **growing phase** (before any locks are released) and all locks are released during the **shrinking phase** (after the growing phase ends). Once a transaction releases a lock, it cannot acquire any more locks.
+   - **Strict Two-Phase Locking**: A variation of 2PL where a transaction holds all of its locks until it commits or aborts, preventing any other transaction from accessing the locked resources.
+   - **Conservative Locking**: In this approach, a transaction tries to lock all the resources it will need at the beginning, thus preventing the need for acquiring additional locks later.
+   - **Optimistic Locking**: Unlike the locking mechanisms that prevent concurrent access during the transaction, optimistic locking assumes that conflicts are rare. Transactions proceed without locks but check for conflicts before committing. If a conflict is detected, the transaction is rolled back.
+
+#### 5. **Deadlock Management**
+   A deadlock occurs when two or more transactions are waiting for each other to release a lock, causing a cycle of dependencies where none of the transactions can proceed. DBMSs use the following techniques to handle deadlocks:
+   
+   - **Deadlock Detection**: The DBMS periodically checks for deadlock cycles. If a cycle is detected, one or more transactions are aborted to break the deadlock.
+   - **Deadlock Prevention**: The system tries to prevent deadlocks by ensuring that transactions do not acquire conflicting locks in a way that would lead to circular wait conditions.
+   - **Deadlock Avoidance**: The DBMS ensures that transactions acquire locks only when they can proceed without risking deadlock, typically by using algorithms such as the **Wait-For Graph**.
+
+#### 6. **Lock Compatibility Matrix**
+   Lock types have certain compatibility with each other. A **compatibility matrix** outlines which types of locks can be held by different transactions simultaneously. 
+   
+   Lock Compatibility Matrix:
+
+   | Lock State   | S-Lock | X-Lock |
+   | ------------ | ------ | ------ |
+   | **Unlocked** | Yes    | Yes    |
+   | **S-Lock**   | Yes    | No     |
+   | **X-Lock**   | No     | No     |
+   | **IS-Lock**  | Yes    | No     |
+   | **IX-Lock**  | No     | No     |
+
+   This matrix helps in understanding which combinations of locks are allowed and which could result in conflicts.
+
+#### 7. **Advantages of Locking**
+   - **Consistency**: Prevents conflicting operations from corrupting the database.
+   - **Concurrency**: Allows multiple transactions to run concurrently without affecting each other's work.
+   - **Isolation**: Each transaction operates in its own isolated environment, unaffected by others until completion.
+
+#### 8. **Disadvantages of Locking**
+   - **Overhead**: Locks introduce overhead in managing concurrent transactions.
+   - **Deadlocks**: If not handled properly, deadlocks can occur and halt system progress.
+   - **Reduced Concurrency**: Granular locks (e.g., row-level locks) are more efficient, but excessive locking can still limit concurrency.
+### Life Cycles of Locks
+#### 1. **Transaction Begins**
+   - When a transaction begins, it doesn't have any locks initially. It can request locks on specific database resources (such as data items, rows, tables, etc.) as needed during its execution.
+   - The transaction typically starts by acquiring a lock on the first data item it wants to access.
+
+#### 2. **Requesting Locks**
+   - **Lock Request**: When a transaction wants to access a data item, it must request a lock for that item. The request can be for a **Shared Lock (S-Lock)** if the transaction intends to read the data, or an **Exclusive Lock (X-Lock)** if it intends to modify the data.
+   - **Locking Protocol**: The transaction must adhere to the locking protocol in use (e.g., **Two-Phase Locking (2PL)**) to ensure proper concurrency control. Depending on the protocol, the transaction may be allowed to acquire locks in a specific sequence or phase (growing or shrinking).
+   - **Lock Compatibility**: The DBMS checks if the requested lock is compatible with any existing locks held by other transactions. For instance, an **Exclusive Lock (X-Lock)** cannot be granted if another transaction already holds a **Shared Lock (S-Lock)** on the same data item.
+
+#### 3. **Lock Acquisition**
+   - If the lock request is compatible with other existing locks, the lock is granted to the transaction, and the transaction can proceed with its operation (read or write).
+   - If the lock request is incompatible (e.g., a transaction requesting an **Exclusive Lock (X-Lock)** when another transaction holds a **Shared Lock (S-Lock)**), the transaction will be **blocked** until the conflicting lock is released by the other transaction.
+   - **Blocking**: The transaction must wait if the resource it is trying to access is already locked by another transaction. The DBMS will put the transaction in a waiting state until the required lock becomes available.
+
+#### 4. **Performing Operations on Locked Data**
+   - After acquiring the necessary locks, the transaction can safely perform its operations (e.g., reading or writing data) without interference from other transactions, because the locks prevent others from modifying the data at the same time.
+   - If the transaction holds an **Exclusive Lock (X-Lock)** on a data item, no other transaction can access or modify that item until the lock is released.
+   - If the transaction holds a **Shared Lock (S-Lock)** on a data item, other transactions can also acquire a shared lock, allowing concurrent reads, but no transaction can modify the data item.
+
+#### 5. **Releasing Locks**
+   - **Commit**: When the transaction completes its operations successfully and is ready to commit (i.e., make the changes permanent), it will release all locks it holds.
+   - **Rollback**: If the transaction aborts (due to an error, violation, or user request), it will release all locks and undo any changes made to the data during its execution.
+   - **Lock Release**: After commit or rollback, the locks held by the transaction are released, allowing other transactions to acquire those locks and access the locked resources.
+
+#### 6. **Ensuring Transaction Isolation**
+   - **Two-Phase Locking (2PL)**: The transaction follows the growing and shrinking phases. During the **growing phase**, the transaction acquires locks but does not release them. Once it starts releasing locks (i.e., entering the **shrinking phase**), it cannot acquire any new locks.
+   - **Strict 2PL**: The transaction holds its locks until it commits or aborts. It doesn’t release any locks until it reaches the commit point, ensuring other transactions cannot access uncommitted changes.
+
+#### 7. **Handling Deadlocks**
+   - **Deadlock Detection**: If multiple transactions are waiting for each other to release locks (forming a cycle), a **deadlock** occurs. The DBMS periodically checks for deadlocks by analyzing the **wait-for graph** (a directed graph where transactions are nodes and edges represent waiting for locks).
+   - **Deadlock Prevention**: Some systems prevent deadlocks by enforcing a **lock ordering** (e.g., transactions must acquire locks in a predefined order) or by using **timeouts**, where a transaction is automatically rolled back if it has been waiting for a lock for too long.
+   - **Deadlock Recovery**: If deadlock is detected, the DBMS resolves it by aborting one or more transactions, allowing others to proceed.
+
+#### 8. **Locking Granularity**
+   - **Granularity** refers to the size of the locked resource. Transactions can lock resources at different granularities:
+     - **Database Level**: Locking the entire database.
+     - **Table Level**: Locking an entire table.
+     - **Row Level**: Locking individual rows of a table.
+     - **Column Level**: Locking specific columns within rows.
+   - The finer the granularity (e.g., row or column level), the higher the concurrency but at the cost of greater overhead in managing many locks. Coarser granularity (e.g., table level) reduces the overhead but can lead to less concurrency.
+
+#### 9. **Lock Compatibility and Lock Compatibility Matrix**
+   - The **Lock Compatibility Matrix** defines which types of locks can be held simultaneously on a data item. For example:
+     - **Shared (S)** locks are compatible with other **Shared (S)** locks, allowing multiple transactions to read the same data simultaneously.
+     - **Exclusive (X)** locks are not compatible with any other lock type. When a transaction holds an exclusive lock, no other transaction can access or modify the data.
+   
+   Example of a basic lock compatibility matrix:
+
+   | Lock Type      | S-Lock | X-Lock |
+   |----------------|--------|--------|
+   | **S-Lock**     | Yes    | No     |
+   | **X-Lock**     | No     | No     |
+
+#### 10. **Transaction Completion**
+   - **Transaction Commit**: Once the transaction completes successfully, it commits, and all the changes made to the database are made permanent. The transaction then releases all its locks, allowing other transactions to acquire them.
+   - **Transaction Abort**: If the transaction encounters an error or is explicitly aborted, the DBMS performs a **rollback** (undoing any changes made) and releases all locks held by the transaction to ensure the system returns to a consistent state.
+
+#### Summary of Locking Steps:
+1. **Transaction Begins**: Initiate the transaction.
+2. **Request Locks**: Request the necessary locks (shared or exclusive).
+3. **Lock Acquisition**: Acquire the requested locks if available, or wait if blocked.
+4. **Perform Operations**: Execute the transaction operations (read/write).
+5. **Release Locks**: Release the locks after the transaction is completed (commit or abort).
+6. **Ensure Isolation**: Follow the locking protocol (e.g., 2PL) to ensure serializability.
+7. **Handle Deadlocks**: Detect and resolve deadlocks if they occur.
+8. **Transaction Completion**: Either commit or rollback the transaction.
+
+
+#### Notes by Prof. PPD.
+
+1. Requesting for / Granting of a Lock
+   - A transaction may be granted a lock on an item if the requested lock is compatible with locks
+already held on the item by other transactions
+2. Sharing a Lock
+   - Any number of transactions can hold shared locks on an item
+   - But if any tranaction holds an exclusive lock on the item no other transaction may hold any lock on the item
+3. Waiting for a Lock
+   - If a lock cannot be granted, the requesting transaction is made to wait till all incompatible locks held by other transactions have been released
+4. Holding a Lock
+   - A transaction must hold a lock on a data item as long as it accesses that item
+5. Unlocking / Releasing a Lock
+   - Transaction Ti may unlock a data item that it had locked at some earlier point
+   - It is not necessarily desirable for a transaction to unlock a data item immediately after its final access of that data item, since serializability may not be ensured
+
+### Example of a Lock-Based Transaction in DBMS
+
+We will use **Two-Phase Locking (2PL)** to manage the locks and avoid conflicts.
+
+#### Scenario:
+- We have a **bank database** with a `BankAccount` table that stores account balances. There are two transactions interacting with the same account data:
+  - **Transaction T1**: Transfer $100 from Account A to Account B.
+  - **Transaction T2**: Check the balance of Account A.
+
+#### Database Table Structure:
+| AccountID | AccountHolder | Balance |
+|-----------|---------------|---------|
+| A         | Alice         | 1000    |
+| B         | Bob           | 1500    |
+
+#### Locking Steps for Transaction T1 (Transfer $100 from Account A to Account B):
+
+**Step 1: Transaction T1 begins**
+- **T1** needs to update the balances of both Account A and Account B.
+- To avoid conflicts, **T1** will acquire **exclusive locks (X-Lock)** on both Account A and Account B to modify their balances.
+
+**Step 2: Transaction T1 requests locks**
+- **T1** first requests an **X-Lock** on **Account A** to debit $100.
+- The DBMS grants the **X-Lock** on Account A because no other transaction holds any lock on Account A.
+
+**Step 3: Transaction T1 performs the first operation**
+- **T1** debits $100 from Account A, changing its balance from 1000 to 900.
+
+**Step 4: Transaction T1 requests the second lock**
+- Now, **T1** requests an **X-Lock** on **Account B** to credit $100 to Account B.
+- The DBMS grants the **X-Lock** on Account B because no other transaction holds any lock on Account B.
+
+**Step 5: Transaction T1 performs the second operation**
+- **T1** credits $100 to Account B, changing its balance from 1500 to 1600.
+
+**Step 6: Transaction T1 releases locks**
+- After updating both accounts, **T1** commits the transaction and releases both **X-Locks** on Account A and Account B.
+
+#### Locking Steps for Transaction T2 (Check Balance of Account A):
+
+**Step 1: Transaction T2 begins**
+- **T2** needs to **read** the balance of Account A to display it.
+
+**Step 2: Transaction T2 requests locks**
+- **T2** requests a **shared lock (S-Lock)** on **Account A** to read the balance.
+- The DBMS grants the **S-Lock** on Account A because **T1** holds an **X-Lock** on Account A, and an **S-Lock** is compatible with other **S-Locks**, but not with **X-Locks**. Since **T2** only needs to read the data, it is granted the shared lock.
+
+**Step 3: Transaction T2 performs the read operation**
+- **T2** successfully reads the balance of Account A (which is now 900 after **T1** has updated it).
+
+**Step 4: Transaction T2 releases the lock**
+- After reading the balance, **T2** releases its **S-Lock** on Account A.
+
+#### Lock Compatibility and Deadlock Considerations:
+- **T1** and **T2** do not experience deadlock in this scenario because:
+  - **T2** only needs to read Account A, and the lock compatibility allows **T2** to hold a **shared lock (S-Lock)** while **T1** holds an **exclusive lock (X-Lock)**.
+  - **T1** waits to acquire both **X-Locks** before performing any operations, and there are no conflicts in this case.
+
+However, if **T2** had requested an **exclusive lock (X-Lock)** on Account A instead of a **shared lock (S-Lock)**, there would have been a conflict because **T1** already holds an **X-Lock** on Account A. In such cases, **T2** would be blocked until **T1** releases the lock.
+
+#### Example of Deadlock Scenario (if T2 requested an X-Lock):
+
+- **T1** acquires an **X-Lock** on Account A and starts updating the balance.
+- **T2** requests an **X-Lock** on Account A to modify it but is blocked because **T1** holds an **X-Lock**.
+- Meanwhile, **T1** requests an **X-Lock** on Account B to update it, but if **T2** had already acquired a lock (e.g., a **shared lock**) on Account B, **T1** would be blocked.
+- If these transactions are waiting on each other to release the locks, a **deadlock** would occur.
+
+In such a case, the DBMS needs to handle the deadlock by either aborting one of the transactions or using **deadlock detection** and **recovery** mechanisms to resolve the conflict.
+
+- **Transaction T1** uses **exclusive locks (X-Locks)** on Account A and Account B because it needs to **write** (modify) their balances.
+- **Transaction T2** uses a **shared lock (S-Lock)** on Account A because it only needs to **read** the balance of Account A.
+- **Lock Compatibility** ensures that **T2** can read Account A while **T1** is updating it, but **T2** could not modify Account A while **T1** is holding an exclusive lock.
+- **Deadlock Prevention**: In this case, the transactions do not cause deadlock because **T2** only requests a shared lock, allowing **T1** to perform its updates without blocking **T2**.
+
+---
+### Concurrency and Deadlock
+
+- Given, T3 and T4, consider Schedule 2 (partial)
+   - Since T3 is holding an exclusive mode lock on B and T4 is requesting a shared-mode lock on B, T4 is waiting for T3 to unlock B
+   - Similarly, since T4 is holding a shared-mode lock on A and T3 is requesting an exclusive-mode lock on A, T3 is waiting for T4 to unlock A
+   - Thus, we have arrived at a state where neither of these trans-actions can ever proceed with its normal execution
+   - This situation is called deadlock
+   - When deadlock occurs, the system must roll back one of the two transactions
+   - Once a transaction has been rolled back, the data items that were locked by that transaction are unlocked.
+   - These data items are then available to the other transaction, which can continue with its execution.
+
+**Locking Based Protocol**  
+
+- If we do not use locking, or if we unlock data items too soon after reading or writing them, we may get inconsistent states
+- On the other hand, if we do not unlock a data item before requesting a lock on another data item, deadlocks may occur
+- Deadlocks are a necessary evil associated with locking, if we want to avoid inconsistent states
+- Deadlocks are definitely preferable to inconsistent states, since they can be handled by rolling back transactions, whereas inconsistent states may lead to real-world problems that cannot be handled by the database system
+- A locking protocol is a set of rules followed by all transactions while requesting and releasing locks
+- Locking protocols restrict the set of possible schedules
+- The set of all such schedules is a proper subset of all possible serializable schedules
+- We present locking protocols that allow only conflict-serializable schedules, and thereby ensure isolation
+
+#### 2 Phase Locking Protocol
+
+This protocol ensures conflict-serializable schedules
+- Phase 1: Growing Phase
+  - Transaction may obtain locks
+  - Transaction may not release locks
+- Phase 2: Shrinking Phase
+  - Transaction may release locks
+  - Transaction may not obtain locks
+  - The protocol assures serializability. It can be proved that the transactions can be serialized in the order of their lock points
+- That is, the point where a transaction acquired its Final lock
+- Any schedule following 2 Phase LP is conflict serializable.
+  - Reverse is not true
+  - ie. There can be conflict serializable schedules that cannot be obtained if two-phase locking is used
+  - 2 phase LP does not ensure freedom from deadlocks
+
+**Lock Conventions**    
+- Two-phase locking with lock conversions:
+   - First Phase:
+      - can acquire a lock-S on item
+      - can acquire a lock-X on item
+      - can convert a lock-S to a lock-X (upgrade)
+   - Second Phase:
+      - can release a lock-S
+      - can release a lock-X
+      - can convert a lock-X to a lock-S (downgrade)
+- This protocol assures serializability. But still relies on the programmer to insert the various locking instructions
+
+**Starvation**  
+
+In addition to deadlocks, there is a possibility of Starvation
+
+- Starvation occurs if the concurrency control manager is badly designed. For example:
+- A transaction may be waiting for an X-lock on an item, while a sequence of other
+transactions request and are granted an S-lock on the same item
+  - The same transaction is repeatedly rolled back due to deadlocks
+  - Concurrency control manager can be designed to prevent starvation
+  - Starvation is also loosely referred to as Livelock
+
+**Cascading Rollback**  
+
+![Cascading Rollback](imgs/71-cascading-rollback.png)
+
+- The potential for deadlock exists in most locking protocols. Deadlocks are a necessary evil
+- When a deadlock occurs there is a possibility of cascading roll-backs
+- Cascading roll-back is possible under two-phase locking
+- In the schedule here, each transaction observes the two-phase locking protocol, but the failure of T5 after the read(A) step of T7 leads to cascading rollback of T6 and T7.
+
+To avoid Cascading roll-back, follow a modified protocol called strict two-phase locking
+   - a transaction must hold all its exclusive locks till it commits/aborts
+   - Rigorous two-phase locking is even stricter
+     - All locks are held till commit/abort. In this protocol transactions can be serialized in the order in which they commit
+   - Note that concurrency goes down as we move to more and more strict locking protocol
+  
+#### Implementation of Locking
+   - A lock manager can be implemented as a separate process to which transactions send lock and unlock requests
+   - The lock manager replies to a lock request by sending a lock grant messages (or a message asking the transaction to roll back, in case of a deadlock)
+   - The requesting transaction waits until its request is answered
+   - The lock manager maintains a data-structure called a lock table to record granted locks and pending requests
+   - The lock table is usually implemented as an in-memory hash table indexed on the name of the data item being locked
+#### Lock Table
+
+Dark blue rectangles indicate granted locks; light blue indicate waiting requests
+- Lock table also records the type of lock granted or requested
+- New request is added to the end of the queue of requests for the data item, and granted if it is compatible with all earlier locks
+- Unlock requests result in the request being deleted, and later requests are checked to see if they can now be granted
+- If transaction aborts, all waiting or granted requests of the transaction are deleted
+- lock manager may keep a list of locks held by each transaction, to implement this efficiently
+  
+  
+  
+## [L10.5: Concurrency Control/2 Module 50 (29:42)](https://youtu.be/OYbfDSxrEKI)
+
+### Deadlock Handling
+   - System is deadlocked if there is a set of transactions such that every transaction in the set is waiting for another transaction in the set
+   - Deadlock Prevention protocols ensure that the system will never enter into a deadlock state. Some prevention strategies:
+      - Require that each transaction locks all its data items before it begins execution (pre-declaration)
+      - Impose partial ordering of all data items and require that a transaction can lock data items only in the order specified by the partial order
+  - Transaction Timestamp
+    - Timestamp is a unique identifier created by the DBMS to identify the relative starting time of a transaction.
+    - Timestamping is a method of concurrency control in which each transaction is assigned a transaction timestamp
+       - Following schemes use transaction timestamps for the sake of deadlock prevention alone
+       - wait-die scheme: non-preemptive (Well Behaved)
+         - Older transaction may wait for younger one to release data item. (older means smaller timestamp)
+         - Younger transactions never wait for older ones; they are rolled back instead
+         - A transaction may die several times before acquiring needed data item
+      - wound-wait scheme: preemptive
+         - Older transaction *wounds* (forces rollback) of younger transaction instead of waiting for it
+            - Younger transactions may wait for older ones
+         - May be fewer rollbacks than wait-die scheme
+
+### Wait-Die Scheme
+   - It is a non-preemptive technique for deadlock prevention
+   - When transaction $T_n$ requests a data item currently held by $T_k$ , $T_n$ is allowed to wait only if it has a timestamp smaller than that of $T_k$ (That is, $T_n$ is older than $T_k$ ), otherwise $T_n$ is killed ("die")
+   - If a transaction requests to lock a resource (data item), which is already held with a conflicting lock by another transaction, then one of the two possibilities may occur:
+     - Timestamp($T_n$) < Timestamp($T_k$ ): $T_n$, which is requesting a conflicting lock, is
+older than $T_k$ , then $T_n$ is allowed to "wait" until the data-item is available.
+     - Timestamp($T_n$) > Timestamp($T_k$ ): $T_n$ is younger than $T_k$ , then $T_n$ is killed
+("dies"). $T_n$ is restarted later with a random delay but with the same timestamp(n)
+   - This scheme allows the older transaction to "wait" but kills the younger one ("die")
+   - Example
+      - Suppose that transaction T5, T10, T15 have time-stamps 5, 10 and 15 respectively
+      - If T5 requests a data item held by T10 then T5 will "wait"
+      - If T15 requests a data item held by T10, then T15 will be killed ("die")
+
+### Wound-Wait Scheme
+  - It is a preemptive technique for deadlock prevention
+  - When transaction $T_n$ requests a data item currently held by $T_k$ , $T_n$ is allowed to wait only if it has a timestamp larger than that of $T_k$ , otherwise $T_k$ is killed (wounded by $T_n$)
+  - If a transaction requests to lock a resource (data item), which is already held with a
+conflicting lock by another transaction, then one of the two possibilities may occur:
+     1. Timestamp($T_n$) < Timestamp($T_k$ ): $T_n$ forces $T_k$ to be killed ("wounds"). $T_k$ is restarted later with a random delay but with the same timestamp(k)
+     2. Timestamp($T_n$) > Timestamp($T_k$ ): $T_n$ "wait"s until the resource is free
+   - This scheme allows the younger transaction requesting a lock to "wait" if the older transaction already holds a lock, but forces the younger one to be suspended ("wound") if the older transaction requests a lock on an item already held by the younger one
+
+- Example
+     - Suppose that transaction T5, T10, T15 have time-stamps 5, 10 and 15 respectively
+     - If T5 requests a data item held by T10, then it will be preempted from T10 and T10 will be suspended ("wounded")
+     - If T15 requests a data item held by T10, then T15 will "wait"
+
+
+- Both in wait-die and in wound-wait schemes, a rolled back transaction is restarted with its original timestamp. Older transactions thus have precedence over newer ones, and starvation is hence avoided
+- Timeout-Based Schemes
+  - A transaction waits for a lock only for a specified amount of time. If the lock has not been granted within that time, the transaction is rolled back and restarted
+  - Thus, deadlocks are not possible
+  - Simple to implement; but starvation is possible. Also difficult to determine good value of the timeout interval
