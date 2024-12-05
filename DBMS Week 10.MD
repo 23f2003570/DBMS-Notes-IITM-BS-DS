@@ -520,7 +520,7 @@ For example:
 - A **write** operation on a data item by one transaction and a **read** operation on the same data item by another transaction conflict.
 
 #### Conflict Serializable vs. Serializable
-
+- Conflict Equivalent - if the precedence graph is not Acyclic
 - **Serializable**: A schedule is serializable if its result is equivalent to the result of some serial execution of the transactions. In a serial schedule, transactions are executed one by one, without overlapping.
 - **Conflict Serializable**: A schedule is conflict-serializable if it can be transformed into a serial schedule by swapping non-conflicting operations. This is a more specific version of serializability, where only conflicting operations are considered when determining whether the schedule can be transformed into a serial schedule.
 - Are all `Serializable Schedules` Conflict Serializable? **NO!**
@@ -676,3 +676,526 @@ There are different algorithms to perform topological sorting:
 In both cases, if there is a cycle, the algorithm will detect it and signal that topological sorting is not possible.
 
 ### Testing for Conflict Serializability
+## [L10.3: Transactions/3: Recoverability ()](https://youtu.be/tlnEqRcVB5s)
+
+### Points  
+
+1. Conflict Serializability guarantees ACID
+2. Only few schedules are conflict serializable
+3. This is why the concept of weak serializability occurs
+4. Cascaded/Cascadeless Schedules are recoverable
+5. IrrRecoverable schedule say you wrote and committed to DB. There is no rollback possible.. IrrRecoverable
+6. always commit last
+7. Recoverable Schedule without cascading rollback.
+8. JDBC connection.setAutoCommit(false) 
+
+### Transaction Control Language
+
+- COMMIT - Save changes
+- ROLLBACK - Rollback Changes
+- SAVEPOINT - points in groups of transactions where to rollback
+- SET TRANSACTION - Names a transaction
+- TCL commands are used with DML commands like INSERT, DELETE, UPDATE only
+  - Not used in create table or drop table.
+
+### Commands
+
+#### 1. **SQLite**
+
+SQLite supports both `SAVEPOINT` and `SET TRANSACTION`.
+
+##### Example with `SAVEPOINT`:
+```sql
+-- Start a transaction
+BEGIN TRANSACTION;
+
+-- Insert some data
+INSERT INTO employees (id, name, salary) VALUES (1, 'John Doe', 50000);
+
+-- Set a savepoint
+SAVEPOINT my_savepoint;
+
+-- Insert another data
+INSERT INTO employees (id, name, salary) VALUES (2, 'Jane Smith', 55000);
+
+-- Rollback to the savepoint (undo the second insert)
+ROLLBACK TO my_savepoint;
+
+-- Commit the transaction
+COMMIT;
+```
+
+**Explanation**:
+- `SAVEPOINT my_savepoint;` creates a savepoint after the first insert.
+- `ROLLBACK TO my_savepoint;` undoes changes made after the savepoint (the second insert).
+- `COMMIT;` saves the changes made up to the savepoint.
+
+##### Example with `SET TRANSACTION`:
+SQLite allows you to set transaction modes, but it's typically used with `BEGIN TRANSACTION`.
+
+```sql
+-- Set the transaction mode (e.g., exclusive mode)
+SET TRANSACTION MODE EXCLUSIVE;
+
+-- Begin transaction in exclusive mode
+BEGIN TRANSACTION;
+
+-- Insert some data
+INSERT INTO employees (id, name, salary) VALUES (1, 'John Doe', 50000);
+
+-- Commit the transaction
+COMMIT;
+```
+
+**Explanation**:
+- `SET TRANSACTION MODE EXCLUSIVE;` ensures no other processes can access the database until the transaction completes.
+- `BEGIN TRANSACTION` starts the transaction, and `COMMIT` saves changes.
+
+---
+
+#### 2. **PostgreSQL**
+
+PostgreSQL supports `SAVEPOINT` and `SET TRANSACTION`.
+
+##### Example with `SAVEPOINT`:
+```sql
+-- Start a transaction
+BEGIN;
+
+-- Insert some data
+INSERT INTO employees (id, name, salary) VALUES (1, 'John Doe', 50000);
+
+-- Set a savepoint
+SAVEPOINT my_savepoint;
+
+-- Insert another data
+INSERT INTO employees (id, name, salary) VALUES (2, 'Jane Smith', 55000);
+
+-- Rollback to the savepoint
+ROLLBACK TO SAVEPOINT my_savepoint;
+
+-- Commit the transaction
+COMMIT;
+```
+
+**Explanation**:
+- `SAVEPOINT my_savepoint;` sets a point in the transaction.
+- `ROLLBACK TO SAVEPOINT my_savepoint;` undoes any changes after the savepoint.
+
+##### Example with `SET TRANSACTION`:
+```sql
+-- Set transaction isolation level to SERIALIZABLE
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+
+-- Start the transaction
+BEGIN;
+
+-- Insert data
+INSERT INTO employees (id, name, salary) VALUES (1, 'John Doe', 50000);
+
+-- Commit the transaction
+COMMIT;
+```
+
+**Explanation**:
+- `SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;` sets the isolation level to ensure that no other transactions can access the data being processed.
+- `BEGIN` starts the transaction, and `COMMIT` finalizes it.
+
+---
+
+#### 3. **Oracle**
+
+Oracle supports `SAVEPOINT` and `SET TRANSACTION`.
+
+##### Example with `SAVEPOINT`:
+```sql
+-- Start a transaction
+-- (Implicit in Oracle; every DML statement is in a transaction)
+INSERT INTO employees (id, name, salary) VALUES (1, 'John Doe', 50000);
+
+-- Set a savepoint
+SAVEPOINT my_savepoint;
+
+-- Insert more data
+INSERT INTO employees (id, name, salary) VALUES (2, 'Jane Smith', 55000);
+
+-- Rollback to the savepoint
+ROLLBACK TO my_savepoint;
+
+-- Commit the transaction
+COMMIT;
+```
+
+**Explanation**:
+- `SAVEPOINT my_savepoint;` is used to create a rollback point.
+- `ROLLBACK TO my_savepoint;` undoes the second insert, but the first one is retained.
+- `COMMIT;` makes all changes permanent.
+
+##### Example with `SET TRANSACTION`:
+```sql
+-- Set the transaction isolation level to SERIALIZABLE
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+
+-- Start the transaction (implicit)
+INSERT INTO employees (id, name, salary) VALUES (1, 'John Doe', 50000);
+
+-- Commit the transaction
+COMMIT;
+```
+
+**Explanation**:
+- `SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;` sets the transaction's isolation level.
+- The transaction automatically begins with the first `INSERT` operation, and `COMMIT` finalizes it.
+
+---
+
+#### 4. **Microsoft SQL Server**
+
+SQL Server also supports `SAVEPOINT` (using `SAVE TRANSACTION`) and `SET TRANSACTION`.
+
+##### Example with `SAVEPOINT` (using `SAVE TRANSACTION`):
+```sql
+-- Start a transaction
+BEGIN TRANSACTION;
+
+-- Insert some data
+INSERT INTO employees (id, name, salary) VALUES (1, 'John Doe', 50000);
+
+-- Set a savepoint
+SAVE TRANSACTION my_savepoint;
+
+-- Insert more data
+INSERT INTO employees (id, name, salary) VALUES (2, 'Jane Smith', 55000);
+
+-- Rollback to the savepoint (undo the second insert)
+ROLLBACK TRANSACTION my_savepoint;
+
+-- Commit the transaction
+COMMIT TRANSACTION;
+```
+
+**Explanation**:
+- `SAVE TRANSACTION my_savepoint;` creates a savepoint after the first insert.
+- `ROLLBACK TRANSACTION my_savepoint;` undoes changes after the savepoint.
+- `COMMIT TRANSACTION;` commits the transaction.
+
+##### Example with `SET TRANSACTION`:
+```sql
+-- Set the isolation level to SERIALIZABLE
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+
+-- Start a transaction
+BEGIN TRANSACTION;
+
+-- Insert data
+INSERT INTO employees (id, name, salary) VALUES (1, 'John Doe', 50000);
+
+-- Commit the transaction
+COMMIT TRANSACTION;
+```
+
+**Explanation**:
+- `SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;` sets the transaction isolation level to `SERIALIZABLE` to ensure that the transaction operates without interference from other transactions.
+- `BEGIN TRANSACTION;` starts the transaction, and `COMMIT TRANSACTION;` finalizes it.
+
+---
+
+#### Summary:
+
+- **`SAVEPOINT`**: Used to create a rollback point in a transaction, allowing partial rollbacks within the transaction. You can roll back to a savepoint without affecting previous changes.
+  - In **SQLite**, **PostgreSQL**, **Oracle**, and **SQL Server**, you use `SAVEPOINT` and `ROLLBACK TO` or `ROLLBACK TRANSACTION` to manage partial rollbacks.
+  
+- **`SET TRANSACTION`**: This is used to control the properties of a transaction, such as the isolation level (e.g., `READ COMMITTED`, `SERIALIZABLE`).
+  - It’s supported by **PostgreSQL**, **Oracle**, and **SQL Server**, but SQLite generally handles transaction properties implicitly.
+
+These transaction features are helpful for fine-tuning how operations are handled, especially in environments where concurrency and atomicity are critical.
+
+#### Deleting Savepoints
+
+##### 1. **SQLite**
+In SQLite, **SAVEPOINTs** are not explicitly deleted or dropped. Once a **SAVEPOINT** is created, it remains within the scope of the transaction. However, you can **release** the savepoint if you no longer need to roll back to it.
+
+###### Example:
+- **Releasing a Savepoint**: 
+  - When you no longer need a savepoint and don't want to roll back to it, you can release it.
+  - Once released, you cannot roll back to it.
+
+```sql
+-- Start a transaction
+BEGIN TRANSACTION;
+
+-- Insert some data
+INSERT INTO employees (id, name, salary) VALUES (1, 'John Doe', 50000);
+
+-- Create a savepoint
+SAVEPOINT my_savepoint;
+
+-- Insert more data
+INSERT INTO employees (id, name, salary) VALUES (2, 'Jane Smith', 55000);
+
+-- Release the savepoint (no rollback to it is possible after this)
+RELEASE SAVEPOINT my_savepoint;
+
+-- Commit the transaction
+COMMIT;
+```
+
+**Explanation**:
+- `RELEASE SAVEPOINT my_savepoint;` removes the savepoint, so it can no longer be rolled back to.
+- The transaction proceeds with the operations being permanent after the commit.
+
+---
+
+##### 2. **PostgreSQL**
+PostgreSQL supports **SAVEPOINTs**, and while they can't be explicitly dropped, they can be **released**. Once released, the savepoint is no longer available for rollback.
+
+###### Example:
+- **Releasing a Savepoint**: 
+  - In PostgreSQL, you can use the `RELEASE SAVEPOINT` command to discard a savepoint, making it no longer available for rollback.
+
+```sql
+-- Start a transaction
+BEGIN;
+
+-- Insert some data
+INSERT INTO employees (id, name, salary) VALUES (1, 'John Doe', 50000);
+
+-- Create a savepoint
+SAVEPOINT my_savepoint;
+
+-- Insert more data
+INSERT INTO employees (id, name, salary) VALUES (2, 'Jane Smith', 55000);
+
+-- Release the savepoint
+RELEASE SAVEPOINT my_savepoint;
+
+-- Commit the transaction
+COMMIT;
+```
+
+**Explanation**:
+- `RELEASE SAVEPOINT my_savepoint;` removes the savepoint from the transaction. After this, rolling back to the savepoint is no longer possible.
+- The transaction is completed with the `COMMIT`.
+
+---
+
+##### 3. **Oracle**
+In **Oracle**, **SAVEPOINTs** cannot be explicitly deleted, but they can be **released** or **ignored** after a certain point. Oracle uses an implicit approach where a savepoint can be "outlived" by continuing the transaction or committing.
+
+###### Example:
+- **Rolling Back to a Savepoint**: You can roll back to a savepoint, but once you commit the transaction, the savepoint is effectively gone.
+
+```sql
+-- Start a transaction
+-- (Implicit in Oracle)
+INSERT INTO employees (id, name, salary) VALUES (1, 'John Doe', 50000);
+
+-- Create a savepoint
+SAVEPOINT my_savepoint;
+
+-- Insert more data
+INSERT INTO employees (id, name, salary) VALUES (2, 'Jane Smith', 55000);
+
+-- Rollback to the savepoint (undoing the second insert)
+ROLLBACK TO my_savepoint;
+
+-- Commit the transaction
+COMMIT;
+```
+
+**Explanation**:
+- `ROLLBACK TO my_savepoint;` undoes the changes made after the savepoint.
+- Once the transaction is committed (`COMMIT`), the savepoint is no longer available for further use.
+
+**Note**: In Oracle, there is no explicit `RELEASE SAVEPOINT` command like in PostgreSQL, but the savepoint becomes irrelevant once you commit the transaction.
+
+---
+
+##### 4. **Microsoft SQL Server**
+In **SQL Server**, **SAVEPOINTs** are implemented using the `SAVE TRANSACTION` statement. You can't explicitly delete a savepoint, but you can **rollback** to it or **outlive** it by continuing the transaction or committing.
+
+###### Example:
+- **Rolling Back to a Savepoint**: 
+  - You can rollback to a savepoint, and once a commit is issued, the savepoint is no longer accessible.
+
+```sql
+-- Start a transaction
+BEGIN TRANSACTION;
+
+-- Insert some data
+INSERT INTO employees (id, name, salary) VALUES (1, 'John Doe', 50000);
+
+-- Create a savepoint
+SAVE TRANSACTION my_savepoint;
+
+-- Insert more data
+INSERT INTO employees (id, name, salary) VALUES (2, 'Jane Smith', 55000);
+
+-- Rollback to the savepoint
+ROLLBACK TRANSACTION my_savepoint;
+
+-- Commit the transaction
+COMMIT TRANSACTION;
+```
+
+**Explanation**:
+- `ROLLBACK TRANSACTION my_savepoint;` undoes all operations after the savepoint.
+- After the `COMMIT TRANSACTION;`, the savepoint is no longer accessible.
+
+---
+
+##### Key Points Summary:
+
+- **SQLite**: You can **release** a savepoint using `RELEASE SAVEPOINT`, which removes the savepoint and prevents further rollbacks to it.
+- **PostgreSQL**: Use `RELEASE SAVEPOINT` to discard a savepoint, making it unavailable for rollback.
+- **Oracle**: There is no direct command to delete a savepoint, but once a transaction is committed, the savepoint is effectively discarded. You can also roll back to it within the same transaction.
+- **SQL Server**: Savepoints cannot be explicitly deleted, but they can be outlived by committing the transaction or rolling back to them. You can use `ROLLBACK TRANSACTION` to undo changes made after a savepoint.
+
+
+### Set Transaction
+
+| **Database**      | **Syntax**                                                                 | **Description**                                                                                         |
+|-------------------|-----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| **SQL Server**    | `SET TRANSACTION ISOLATION LEVEL <level>;`                                   | Sets the isolation level for the current transaction. Supported levels: `READ UNCOMMITTED`, `READ COMMITTED`, `REPEATABLE READ`, `SERIALIZABLE`, `SNAPSHOT`. |
+| **Oracle**        | `SET TRANSACTION ISOLATION LEVEL <level>;`                                   | Sets the isolation level for the current transaction. Supported levels: `READ COMMITTED`, `SERIALIZABLE`. |
+| **PostgreSQL**    | `SET TRANSACTION ISOLATION LEVEL <level>;`                                   | Sets the isolation level for the current transaction. Supported levels: `READ UNCOMMITTED`, `READ COMMITTED`, `REPEATABLE READ`, `SERIALIZABLE`. |
+| **SQLite**        | `SET TRANSACTION <mode>;`                                                   | Sets the transaction mode (e.g., `DEFERRED`, `IMMEDIATE`, `EXCLUSIVE`). No support for isolation levels. |
+
+`SET TRANSACTION [READ WRITE | READ ONLY]`
+
+
+#### View Equivalence
+
+A **transaction schedule** is a sequence of operations (such as read, write, commit, or abort) executed by multiple transactions. The operations are usually executed in some interleaved order. A schedule is essentially a history of database operations and is used to define the behavior of concurrent transactions.
+
+#### **View Equivalence of Transaction Schedules**
+
+In the context of **view equivalence**, two transaction schedules are said to be **view equivalent** if the **final result (view)** of the database is the same, even if the **order of execution of the operations** is different.
+
+In simpler terms:
+- Two transaction schedules are view equivalent if, after executing them, the **database state** is the same, even though the operations in the schedules might occur in different orders.
+- The key idea is that even though the **sequence of operations** may vary, the **read and write values** and the **final database state** remain identical.
+
+#### Formal Definition:
+Two schedules $S_1$ and $S_2$ are **view equivalent** if:
+- **Final Database State**: After executing both schedules, the final state of the database (i.e., the data in the database tables) is the same.
+- **Read-Write Consistency**: Any **read operation** in both schedules retrieves the same value. Specifically:
+  - If a transaction reads a value of a variable (or database object) in both schedules, the value must be the same in both schedules.
+  - The writes (updates) must also be in the same order and affect the same data items.
+  
+#### Example of View Equivalence
+
+Consider two transactions on a bank account table (`Account`) with a single record for `balance`:
+
+| AccountID | Balance |
+|-----------|---------|
+| 1         | 1000    |
+
+Let's define two transactions:
+
+- **Transaction T1**: 
+  - Read balance (`balance = 1000`)
+  - Write `balance = 1500`
+
+- **Transaction T2**:
+  - Read balance (`balance = 1000`)
+  - Write `balance = 1200`
+
+##### Schedule 1: $S_1$
+```
+T1:  Read(balance) = 1000
+T2:  Read(balance) = 1000
+T1:  Write(balance) = 1500
+T2:  Write(balance) = 1200
+```
+
+##### Schedule 2: $S_2$
+```
+T2:  Read(balance) = 1000
+T1:  Read(balance) = 1000
+T2:  Write(balance) = 1200
+T1:  Write(balance) = 1500
+```
+
+##### Checking View Equivalence:
+- **Final state**:
+  - In both schedules, the final **balance** in the `Account` table will be **1500** because:
+    - In **Schedule 1**, T1 writes 1500 first, then T2 writes 1200 (overwriting T1’s write).
+    - In **Schedule 2**, T2 writes 1200 first, then T1 writes 1500 (overwriting T2’s write).
+  - So, in both cases, the final balance is 1500.
+
+- **Read-Write Consistency**:
+  - The **read operations** in both schedules are consistent because both T1 and T2 read the same balance (1000).
+  - The **write operations** are also consistent as both schedules end up with the same value for `balance`.
+
+Since the **final database state** is identical in both schedules, and the **read values** and **write operations** are consistent in both cases, **Schedule 1** and **Schedule 2** are **view equivalent**.
+
+#### Key Points of View Equivalence in Transaction Schedules:
+1. **Final Database State**: The database state must be the same after both schedules have been executed.
+2. **Read Operations**: If a transaction reads a value, the value read must be the same in both schedules, even if the read occurs in a different order.
+3. **Write Operations**: The writes must have the same effect, even if they are interleaved in a different order.
+
+#### Importance of View Equivalence in Transaction Schedules:
+- **Transaction Isolation**: View equivalence helps ensure that the database's behavior remains consistent and predictable, even when transactions are executed in different orders. This is important for **transaction isolation** in a **multi-user environment**.
+- **Concurrency Control**: It helps in designing systems that maintain **serializability** (i.e., the end result of executing transactions concurrently is the same as if they were executed sequentially), which is a key property of database management systems to avoid anomalies.
+  
+#### Example of Non-View Equivalence:
+
+Consider the following schedule:
+
+- **Transaction T1**: 
+  - Read balance (`balance = 1000`)
+  - Write `balance = 1500`
+
+- **Transaction T2**:
+  - Read balance (`balance = 1000`)
+  - Write `balance = 1200`
+
+##### Schedule 3: $S_3$
+```
+T1:  Read(balance) = 1000
+T1:  Write(balance) = 1500
+T2:  Read(balance) = 1500
+T2:  Write(balance) = 1200
+```
+
+##### Schedule 4: $S_4$
+```
+T2:  Read(balance) = 1000
+T2:  Write(balance) = 1200
+T1:  Read(balance) = 1200
+T1:  Write(balance) = 1500
+```
+
+In **Schedule 3**, T1 writes 1500 before T2, while in **Schedule 4**, T2 writes 1200 before T1. The **read values** differ between schedules. For example:
+- In **Schedule 3**, T2 reads 1500 after T1 writes it.
+- In **Schedule 4**, T1 reads 1200 after T2 writes it.
+
+Since the **read values** are inconsistent between the two schedules, **Schedule 3** and **Schedule 4** are **not view equivalent**.
+
+- **View equivalence** in the context of transaction schedules means that two schedules produce the same final database state and have consistent read and write operations, even if the operations are interleaved differently.
+- It ensures that concurrent transactions do not lead to unexpected or inconsistent results, thereby maintaining the **correctness** and **isolation** of transactions in a multi-user environment.
+
+#### Simpler way to test for VIEW EQUIVALENCE
+There are 2 schedules S (Schedule) and S` (Serial Schedule)
+1. Initial Read: In S & S', both T1 and T2 should read the same Attribute Q
+2. Write-Read Pair: In S if T1 Writes(Q), and T2 Reads(Q) then in S' also, T1 writes(Q) and T2 reads(Q)
+3. Final Write: T1 FinalWrite(Q) in S should match T1 FinalWrite(Q) in S'  
+4. View/Conflict Equivalence is based on pure reads and writes alone.
+
+### VIEW SERIALIZABILITY
+
+A Schedule is View Serializable if it is **View Equivalent** to a **Serial Schedule**
+
+Every View Serializable Schedule that is not conflict serializable has blind writes
+
+Every conflict serializable schedule is also a view serializable.
+
+
+
+1. Recoverability is not possible if a transaction T2 reads the updated item of another transaction T1 and performs the commit operation before T1.
+2. Cascadeless Schedules are preferred over Cascading Rollbacks.
+3. For achieving a cascadeless recovery, a transaction T1 must be committed before any other transaction reads the data item written by T1.
+4. Every conflict serializable schedule is also a view serializable.
+5. View equivalence is purely based on reads and writes alone
+6. A schedule is view serializable if it is view equivalent to serial schedule.
