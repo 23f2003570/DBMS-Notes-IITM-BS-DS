@@ -361,3 +361,5 @@ Remember, It's up to Database to decide when to write a `System Buffer Block` in
     - $T_4$ undone
 
 ----
+
+## [L11.3, Module 53: Backup & Recovery/3: Recovery/2 (33:43)](https://youtu.be/41cWyckqqRc)
