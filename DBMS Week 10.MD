@@ -1455,11 +1455,45 @@ This protocol ensures conflict-serializable schedules
   - Transaction may release locks
   - Transaction may not obtain locks
   - The protocol assures serializability. It can be proved that the transactions can be serialized in the order of their lock points
-- That is, the point where a transaction acquired its Final lock
+  - Lock Point is the point where last lock and first unlock happens
+    - LP is used to define the serializability
+    - Compare the level of T1 & T2 lock point.
+      - this will tell you if T1 is happening first or is it T2.
+      - will give you $T_1 \to T_2$
+  - **Lock Points** are the area of transactions before first lock is released
+    - basically the border of Phase-1 and phase2
 - Any schedule following 2 Phase LP is conflict serializable.
   - Reverse is not true
   - ie. There can be conflict serializable schedules that cannot be obtained if two-phase locking is used
   - 2 phase LP does not ensure freedom from deadlocks
+
+**Lock Points**   
+
+**Lock Points in Serializable Schedule with 3 transactions**
+| T1  | T2  | T3  |
+| --- | --- | --- |
+| LP  |     |     |
+|     |     | LP  |
+|     | LP  |     |
+This becomes
+   $T_1 \to T_2 \to T_3$
+
+**Two Phase Locking** are of 3 types
+   1. **Conservative/Static**
+      1. Releases lock only after commit
+      2. Deadlock free? GateSmashers says has deadlines
+      3. Has starvation problem
+      4. has recoverability problem
+      5. cascade rollback problem
+   2. **Strict 2PL**
+      1. *Exclusive Locks* cannot be released until commit
+      2. Cascadeless Schedule
+      3. Deadlock may occur
+      4. no cascade rollback problem
+   3. **Rigorous 2PL**
+      1. Deadlock may occur
+      2. *Shared* or *Exclusive* locks cannot be released before commit
+      3. no cascade rollback problem
 
 **Lock Conventions**    
 - Two-phase locking with lock conversions:
@@ -1483,6 +1517,7 @@ transactions request and are granted an S-lock on the same item
   - The same transaction is repeatedly rolled back due to deadlocks
   - Concurrency control manager can be designed to prevent starvation
   - Starvation is also loosely referred to as Livelock
+  - In starvation, you have finite wait time for lock. Deadlocks wait infinitely
 
 **Cascading Rollback**  
 
