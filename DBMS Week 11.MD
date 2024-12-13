@@ -478,3 +478,120 @@ operation (known as logical undo)
 − allows early lock release on space allocation information
 ▷ subtract amount deposited, to undo deposit
 − allows early lock release on bank balance
+
+## [L11.5: Backup & Recovery/5: Backup/2: RAID (32:57)](https://youtu.be/YYl4onLINRY)
+
+### RAID: Redundant Array of Independent Disks (or Inexpensive)  
+
+- Disk organization techniques that manage a large numbers of disks, providing a view of a single disk of
+    - high capacity and high speed by using multiple disks in parallel,
+    - high reliability by storing data redundantly, so that data can be recovered even if a disk fails
+- The chance that some disk out of a set of n disks will fail is much higher than the chance that a specific single disk will fail
+    - For example, a system with 100 disks, each with MTTF (Mean Time To Failure) of 100,000 hours will have a system MTTF of 1000 hours (do the math)
+    - Techniques for using redundancy to avoid data loss are critical with large numbers of disks
+- Originally a cost effective alternative to large, expensive disks
+    - "I" in RAID originally stood for inexpensive
+    - Today RAIDs are used for their higher reliability and bandwidth
+        - The "I" is interpreted as independent
+
+### RAID Mirroring
+
+- Redundancy means: Store extra information that can be used to rebuild information lost in a disk failure
+    - **Mean time to data loss** depends on mean time to failure, and mean time to repair
+      - For example, in a single disk MTTF of 100,000 hours, **Mean Time To Repair** of 10 hours gives **Mean Time To Data Loss** of $500 \times 10^6$ hours (or 57,000 years) for a mirrored pair of disks (ignoring dependent failure modes)
+  
+        $$
+          MTTDL = \dfrac{MTTF_{disk_1} \times MTTF_{disk_2}}{2 \times MTTR}
+        $$
+        $$
+          MTTDL = \dfrac{10^5 \times 10^5}{2 \times 10} \ hours \\
+          = 5 \times 10^8 \ hours \\
+          = 57077.625 \ years \\
+          This \ is \ how \ Prof. \ PPD \ calculated \ this
+        $$
+- Mirroring (or shadowing)
+  - Duplicate every disk. Logical disk consists of two physical disks.
+  - Every write is carried out on both disks
+      - Reads can take place from either disk
+  - If one disk in a pair fails, data still available in the other
+      - Data loss would occur only if a disk fails, and its mirror disk also fails before the system is repaired
+          - Probability of combined event is very small
+          - Except for dependent failure modes such as fire or building collapse or electrical power surges
+
+In a mirrored RAID setup, data loss occurs only if both disks fail before the failed disk is replaced. Given that the Mean Time to Repair is relatively short (10 hours), the system can typically replace a failed disk before the second one fails. This results in a very long Mean Time to Data Loss in such configurations.
+
+### Striping
+  - **Bit-level Striping**: Split the bits of each byte across multiple disks
+      - In an array of eight disks, write bit i of each byte to disk i
+      - Each access can read data at eight times the rate of a single disk
+      - But seek/access time worse than for a single disk
+          - Bit level striping is not used much any more
+  - **Byte-level Striping**: Each file is split up into parts one byte in size. Using n = 4 disk array as an example
+      - the 1st byte would be written to the 1st drive
+      - the 2nd byte to the 2nd drive and so on, until
+      - the 5th byte is then written to the 1st drive again and the whole process starts over
+      - the i th byte is then written to the $(((i - 1) \% n) + 1)$th drive
+  - **Block-level Striping**:
+    - With n disks, block i of a file goes to disk $(i \% n) + 1$
+    - Requests for different blocks can run in parallel if the blocks reside on different disks
+    - A request for a long sequence of blocks can utilize all disks in parallel
+
+### Parity
+  **Bit-Interleaved Parity**:
+
+- A single parity bit is enough for error correction, not just detection, since we know which disk has failed
+      - When writing data, corresponding parity bits must also be computed and written to a parity bit disk
+      - To recover data in a damaged disk, compute XOR of bits from other disks (including parity bit disk)
+  
+
+**Block-Interleaved Parity**:
+
+- Uses block-level striping, and keeps a parity block on a separate disk for corresponding blocks from n other disks
+- When writing data block, corresponding block of parity bits must also be computed and written to parity disk
+- To  find value of a damaged block, compute XOR of bits from corresponding blocks (including parity block) from other disks
+
+### Parity Checks
+
+
+**Odd-Even Parity** refers to a method used to detect errors in data transmission or storage. It involves adding a parity bit to a sequence of data bits to ensure that the total number of 1's (or 0's) in the data, including the parity bit, is either odd or even.
+
+
+#### 1. Odd Parity:
+In **odd parity**, the number of 1's in the data, including the parity bit, is always an **odd number**.
+
+- If the number of 1's in the data bits is already odd, the parity bit is set to **0** to maintain the odd count.
+- If the number of 1's in the data bits is even, the parity bit is set to **1** to make the total number of 1's odd.
+
+**Example of Odd Parity:**
+Suppose the data is `1011001` (7 bits).
+- Count the number of 1's: There are 4 ones (even).
+- To make it odd, set the parity bit to **1**.
+
+So, the transmitted data with odd parity would be:  
+`1011001 1` (The parity bit is added to make the total number of 1's equal to 5, which is odd).
+
+#### 2. Even Parity:
+In **even parity**, the number of 1's in the data, including the parity bit, is always an **even number**.
+
+- If the number of 1's in the data bits is already even, the parity bit is set to **0** to keep the count even.
+- If the number of 1's in the data bits is odd, the parity bit is set to **1** to make the total number of 1's even.
+
+**Example of Even Parity:**
+Suppose the data is `1011001` (7 bits).
+- Count the number of 1's: There are 4 ones (even).
+- The parity bit should be set to **0** since the count is already even.
+
+So, the transmitted data with even parity would be:  
+`1011001 0` (The parity bit is added to maintain an even number of 1's, which remains 4).
+
+#### Parity Checking:
+At the receiving end, the parity bit is checked to ensure that the total number of 1's in the received data matches the expected odd or even parity. If there’s an error (i.e., a bit is flipped during transmission), the parity check will fail, and the system can detect that an error has occurred.
+
+##### Example of Error Detection:
+
+- If the data `1011001` with odd parity (and a parity bit of `1`) is transmitted but the bit sequence is corrupted, e.g., changed to `1011101`, the parity bit would no longer make the total count of 1's odd.
+  - In this case, the receiver will detect the mismatch and realize that an error occurred.
+
+- **Odd Parity:** The total number of 1's (data + parity) is odd.
+- **Even Parity:** The total number of 1's (data + parity) is even.
+- The parity bit is added as a simple error-detection mechanism to help ensure data integrity during transmission or storage.
