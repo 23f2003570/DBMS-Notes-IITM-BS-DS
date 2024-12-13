@@ -216,6 +216,7 @@ Protecting storage media from failure during data transfer (cont.):
 ### Data Access
 -  Physical Blocks are those blocks residing on the disk
 -  System Buffer Blocks are the blocks residing temporarily in main memory
+   -  **Buffer Manager** writes the data from System Buffer Block to Database
 -  Block movements between disk and main memory are initiated through the following two operations:
      - input(B) transfers the physical block B to main memory
      - output(B) transfers the buffer block B to the disk, and replaces the appropriate physical block there
@@ -246,11 +247,11 @@ modifications to stable storage without modifying the database itself
 -  A log is kept on stable storage
       - The log is a sequence of log records, which maintains information about update activities on the database
 - When transaction $T_i$ starts, it registers itself by writing a record `<$T_i$ start>` to the log
-- Before $T_i$ executes `write(X)`, a log record `<$T_i$ ;X;V1;V2>` is written, where V1 is the value of X before the write (old value), and V2 is the value to be written to X (new value)
+- Before $T_i$ executes `write(X)`, a log record `<$T_i$ ;X;$V_1$;$V_2$>` is written, where $V_1$ is the value of X before the write (old value), and $V_2$ is the value to be written to X (new value)
 - When $T_i$ finishes its last statement, the log record `<$T_i$ commit>` is written
 
 1. `<$T_i$ start>`
-2. `<$T_i$ ;X;V1;V2>` is (`write(X)`)
+2. `<$T_i$ ;X;$V_1$;$V_2$>` is (`write(X)`)
 3. `<$T_i$ commit>`
 
 ### Database Modification Schemes
@@ -300,8 +301,8 @@ Remember, It's up to Database to decide when to write a `System Buffer Block` in
 |                       |                       |                                                   |
 
 ### Undo and Redo Operations
--  Undo of a log record **<$T_i$ X V1 V2>** writes the old value V1 to X
--  Redo of a log record **<$T_i$ X V1 V2>** writes the new value V2 to X
+-  Undo of a log record **<$T_i$ X $V_1$ $V_2$>** writes the old value $V_1$ to X
+-  Redo of a log record **<$T_i$ X $V_1$ $V_2$>** writes the new value $V_2$ to X
 -  Undo and Redo of Transactions
     - undo ($T_i$) restores the value of all data items updated by $T_i$ to their old values, going backwards from the last log record for $T_i$
       - Each time a data item X is restored to its old value V a special log record (called redo-only) **<$T_i$ X V>** is written out
@@ -317,8 +318,8 @@ Remember, It's up to Database to decide when to write a `System Buffer Block` in
 
 ### Undo and Redo on Normal Transaction Rollback
 -  Let $T_i$ be the transaction to be rolled back
--  Scan log backwards from the end, and for each log record of $T_i$ of the form **<$T_i$ $X_j$ V1 V2>**
-    - Perform the undo by writing V1 to Xj ,
+-  Scan log backwards from the end, and for each log record of $T_i$ of the form **<$T_i$ $X_j$ $V_1$ $V_2$>**
+    - Perform the undo by writing $V_1$ to $X_j$ ,
     - Write a log record <$T_i$ $X_j$ $V_1$>
         - such log records are called **Compensation Log Records**
 -  Once the record <$T_i$ **start**> is found stop the scan and write the log record <$T_i$ **abort**>
@@ -363,3 +364,117 @@ Remember, It's up to Database to decide when to write a `System Buffer Block` in
 ----
 
 ## [L11.3, Module 53: Backup & Recovery/3: Recovery/2 (33:43)](https://youtu.be/41cWyckqqRc)
+
+### Order of Operation in a Database Update
+
+1. Transaction Log in Stable Storage
+2. Database (itself)
+
+### Transactional Logging with Recovery
+
+When using transactional logging we distinguish between recover and restore:
+  - Recover: retrieve from the backup media the database files and transaction logs, and
+  - Restore: reapply database consistency based on the transaction logs
+
+### Concurrency Control and Recovery
+  - With concurrent transactions, all transactions share a single disk buffer and a single log
+    - A buffer block can have data items updated by one or more transactions
+  - We assume that if a transaction $T_i$ has modified an item, no other transaction can modify the same item until $T_i$ has committed or aborted
+    - That is, the updates of uncommitted transactions should not be visible to other transactions
+        - Otherwise how do we perform undo if T1 updates A, then T2 updates A and commits, and finally T1 has to abort?
+    - Can be ensured by obtaining exclusive locks on updated items and holding the locks till end of transaction (strict two-phase locking)
+  - Log records of different transactions may be interspersed in the log
+
+### Recovery Algorithm
+#### Logging (during normal operation):
+  - <$T_i$ **start**> at transaction start
+  - <$T_i$ $X_j$ $V_1$ $V_2$> for each update, and
+  - <$T_i$ **commit**> at transaction end Database
+
+#### Transaction rollback (during normal operation)
+  - Let $T_i$ be the transaction to be rolled back
+  - Scan log backwards from the end, and for each log record of $T_i$ of the form <$T_i$ $X_j$ $V_1$ $V_2$>
+    - perform the undo by writing $V_1$ to $X_j$,
+        - write a log record <$T_i$ $X_j$ $V_1$>
+        - such log records are called **Compensation Log Records (CLR)**
+  - Once the record <$T_i$ start> is found stop the scan and write the log record <$T_i$ **abort**>
+
+### Recovery Algorithm: Checkpoints
+
+![Recovery Algorithm: Checkpoints](imgs/71-checkpoint-recovery.png)
+
+![Recovery Algorithms-checkpoint](imgs/71-checkpoint-recovery-1.png)
+
+![Recovery Algorithms-checkpoint](imgs/71-checkpoint-recovery-2.png)
+
+
+### Recovery Algorithm: Redo Phase
+
+- Find last <**checkpoint** L> record, and set undo-list to L
+- Scan forward from above <**checkpoint** L> record
+    - Whenever a record <$T_i$  $X_j$  $V_1$  $V_2$> is found, redo it by writing $V_2$ to $X_j$
+    - Whenever a log record <$T_i$ **start**> is found, add $T_i$ to undo-list
+    - Whenever a log record <$T_i$ **commit**> or <$T_i$ **abort**> is found, remove $T_i$ from undo-list
+- Steps for the REDO operation are:
+  - If the transaction has done INSERT, the recovery manager generates an insert from the log
+  - If the transaction has done DELETE, the recovery manager generates a delete from the log
+  - If the transaction has done UPDATE, the recovery manager generates an update from the log.
+
+
+### Recovery Algorithm: Undo Phase
+- Scan log backwards from end
+    - Whenever a log record <$T_i$  $X_j$  $V_1$  $V_2$ > is found where $T_i$ is in undo-list perform same actions as for transaction rollback:
+        - Perform undo by writing $V_1$ to $X_j$
+        - Write a log record <$T_i$  $X_j$  $V_1$ >
+    - Whenever a log record <$T_i$ **start**> is found where $T_i$ is in undo-list
+        - Write a log record <$T_i$ **abort**>
+        - Remove $T_i$ from undo-list
+    - Stop when undo-list is empty
+      - That is, <$T_i$ **start**> has been found for every transaction in undo-list
+- Steps for the UNDO operation are:
+    - If the faulty transaction has done INSERT, the recovery manager deletes the data item(s) inserted
+    - If the faulty transaction has done DELETE, the recovery manager inserts the deleted data item(s) from the log
+    - If the faulty transaction has done UPDATE, the recovery manager eliminates the value by writing the before-update value from the log
+- After undo phase completes, normal transaction processing can commence
+
+![redo - undo](imgs/72-redo-undo.png)
+
+
+## [L11.4: Backup & Recovery/4: Recovery/3 (30:32)](https://youtu.be/zliL6LlKiNs)
+
+
+### Recovery with Early Lock Release
+- Any index used in processing a transaction, such as a B+-tree, can be treated as normal data
+- To increase concurrency, the B+-tree concurrency control algorithm often allow locks to be released early, in a non-two-phase manner
+- As a result of early lock release, it is possible that
+    - a value in a B+-tree node is updated by one transaction T1, which inserts an entry (V1, R1), and subsequently
+    - by another transaction T2, which inserts an entry (V2, R2) in the same node, moving the entry (V1, R1) even before T1 completes execution
+- At this point, we cannot undo transaction T1 by replacing the contents of the node with the old value prior to T1 performing its insert, since that would also undo the insert performed by T2; transaction T2 may still commit (or may have already committed)
+- **Hence, the only way to undo the effect of insertion of (V1, R1) is to execute a corresponding delete operation**
+- Support for high-concurrency locking techniques, such as those used for B+-tree concurrency control, which release locks early
+    - Supports **logical undo**
+- Recovery based on **repeating history**, whereby recovery executes exactly the same actions as normal processing
+    - including redo of log records of incomplete transactions, followed by subsequent undo
+    - Key benefits
+        - supports logical undo
+        - easier to understand/show correctness
+- Early lock release is important not only for indices, but also for operations on other system data structures that are accessed and updated very frequently like:
+    - data structures that track the blocks containing records of a relation
+    - the free space in a block
+    - the free blocks
+
+
+### Logical Undo Logging
+- Operations like B+-tree insertions and deletions release locks early
+    - They cannot be undone by restoring old values (physical undo), since once a lock
+is released, other transactions may have updated the B+-tree
+◦ Instead, insertions (deletions) are undone by executing a deletion (insertion)
+operation (known as logical undo)
+• For such operations, undo log records should contain the undo operation to be executed
+◦ Such logging is called logical undo logging, in contrast to physical undo logging
+▷ Operations are called logical operations
+◦ Other examples:
+▷ delete of tuple, to undo insert of tuple
+− allows early lock release on space allocation information
+▷ subtract amount deposited, to undo deposit
+− allows early lock release on bank balance
