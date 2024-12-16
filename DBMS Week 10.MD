@@ -1549,7 +1549,46 @@ Dark blue rectangles indicate granted locks; light blue indicate waiting request
 - If transaction aborts, all waiting or granted requests of the transaction are deleted
 - lock manager may keep a list of locks held by each transaction, to implement this efficiently
   
+### Thomas Write Rule
+
+The **Thomas Write Rule** is a concept in database management systems (DBMS) that is used in the context of **concurrency control**. It provides a way to manage and control transactions in databases, ensuring consistency and avoiding conflicts when multiple transactions are executed concurrently.
+
+### Thomas Write Rule - Explanation:
+
+Thomas Write Rule is a modification of the **Two-Phase Locking (2PL)** protocol. It allows for **non-blocking** reads and a more relaxed approach to write operations. The main idea of this rule is to **permit a transaction to overwrite the previous values** written by other transactions, as long as the value written is *uncommitted* at the time of the operation. In other words, **if a value written by a transaction is never committed, it can be overwritten** by other transactions without causing inconsistency.
+
+The rule defines that:
+
+1. **If a transaction writes a value to a data item** and the **value has not been committed**, it is safe for other transactions to overwrite it (even if the first write hasn't been completed).
+2. **Uncommitted values can be discarded** if it was not committed by the transaction that wrote it, and another transaction can modify the value without causing any inconsistencies.
+
+This rule helps in **reducing the overhead** and **improving concurrency** in certain scenarios, where traditional locking might unnecessarily block transactions.
+
+#### Example:
+
+Consider the following scenario with two transactions T1 and T2 and a shared data item `X`.
+
+- **Initial Value** of `X = 10`.
+
+##### Transaction 1 (T1):
+- T1 writes `X = 20` but doesn't commit yet.
   
+##### Transaction 2 (T2):
+- T2 writes `X = 30` while T1 has not yet committed.
+  
+##### After these actions, according to Thomas Write Rule:
+- T1 had written `X = 20`, but it was not committed.
+- T2 writes `X = 30` without waiting for T1 to commit. This is allowed because T1’s write is not final (not committed).
+
+Now, if **T1 commits**:
+- The final value of `X` will be `20` because T1’s write will take effect.
+
+However, if **T1 aborts**, then T2’s write of `X = 30` will be the final value. This is where the Thomas Write Rule is useful as it ensures that non-committed writes do not block other transactions.
+
+#### Key Points:
+- **Non-blocking reads**: The rule enables transactions to continue even if the data is uncommitted by other transactions.
+- **Overwriting uncommitted writes**: If a transaction writes to a data item, and the value has not been committed, it can be overwritten by another transaction without causing inconsistency.
+- **Improved concurrency**: This rule allows for higher concurrency, as it avoids waiting for a commit or release of locks on values that are not final.
   
 ## [L10.5: Concurrency Control/2 Module 50 (29:42)](https://youtu.be/OYbfDSxrEKI)
 

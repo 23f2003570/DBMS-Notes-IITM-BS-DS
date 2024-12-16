@@ -253,3 +253,99 @@ If $N \ge M$, several merge passes are required
 
 ## [L12.2 Module 57: Query Processing and Optimization/2: Optimization (31:22)](https://youtu.be/pAonkbv10ak)
 
+### Query Optimization
+
+#### Equivalent Expressions
+
+![Equivalent Expressions](imgs/76-equivalent-expressions.png)
+
+
+#### Evaluation Plan
+![Evaluation Plan](imgs/76-evaluation-plan.png)
+
+
+- Cost difference between evaluation plans for a query can be enormous
+    - For example, seconds vs. days in some cases
+- Steps in **cost-based query optimization**
+    - Generate logically equivalent expressions using **equivalence rules**
+    - Annotate resultant expressions to get alternative query plans
+    - Choose the cheapest plan based on **estimated cost**
+- Estimation of plan cost based on:
+    - Statistical information about relations.
+        - Examples: number of tuples, number of distinct values for an attribute
+    - Statistics estimation for intermediate results
+        - to compute cost of complex expressions
+    - Cost formulae for algorithms, computed using statistics
+
+### Transformation of Relational Expressions
+- Two relational algebra expressions are said to be equivalent if the two expressions generate the same set of tuples on every legal database instance
+  - Note: order of tuples is irrelevant
+    - We do not care if they generate different results on databases that violate integrity constraints
+- In SQL, inputs and outputs are multisets of tuples
+    - Two expressions in the multiset version of the relational algebra are said to be equivalent if the two expressions generate the same multiset of tuples on every legal database instance.
+- An equivalence rule says that expressions of two forms are equivalent
+    - Can replace expression of first form by second, or vice versa
+
+
+### Equivalence Rules
+
+![Equivalence Rules](imgs/76-equivalence-rules.png)   
+
+![Equivalence Rules 2](imgs/76-equivalence-rules2.png)   
+
+![Pictorial Representation](imgs/76-equivalent-joins.png)  
+
+![Equivalence Rules](imgs/76-join-equivalence-rules.png)
+
+![Equivalence Rules](imgs/76-projection-distribution.png)  
+
+![Equivalence Rules](imgs/76-projection-distribution-2.png)
+
+
+#### Pushing / Grouping Selections
+
+![Equivalence Rules](imgs/76-equivalence-rule-creation.png)
+
+#### Multiple Transformations
+
+![Multiple Transformation](imgs/77-associating-multiple-joins.png)
+
+![Multiple Transformation](imgs/77-associating-multiple-joins-2.png)  
+
+
+#### Transformation Example: Pushing Projections
+![Pushing Projections](imgs/77-pushing-projection.png) 
+
+### Join Ordering Example
+
+- For all relations $r_1$, $r_2$, and $r_3$,
+    - $(r_1 \Join r_2) \Join r_3 = r_1 \Join (r_2 \Join r3)$
+      - called Join Associativity
+- If $r_2 \Join r_3$ is quite large and $r_1 \Join r_2$ is small, we choose
+    - $(r_1 \Join r_2) \Join r_3$
+    - so that we compute and store a smaller temporary relation 
+
+### Enumeration of Equivalent Expressions
+- Query optimizers use equivalence rules to systematically generate expressions equivalent to the given expression
+- Can generate all equivalent expressions as follows:
+    - Repeat
+        - apply all applicable equivalence rules on every sub expression of every equivalent expression found so far
+        - add newly generated expressions to the set of equivalent expressions
+      - Until no new equivalent expressions are generated above
+- The above approach is very expensive in space and time
+    - Two approaches
+        - Optimized plan generation based on transformation rules
+        - Special case approach for queries with only selections, projections and joins
+
+### Implementing Transformation Based Optimization
+- Space requirements reduced by sharing common sub-expressions:
+        - when E1 is generated from E2 by an equivalence rule, usually only the top level of the two are different, subtrees below are the same and can be shared using pointers
+            - E.g. when applying join commutativity
+        - Same sub-expression may get generated multiple times
+            - Detect duplicate sub-expressions and share one copy
+- Time requirements are reduced by not generating all expressions
+    - Dynamic programming - find current cost dynamically
+
+
+## [L12.3 Module 58: RDBMS Performance & Architecture (30:56)](https://youtu.be/MGJaOVjdHvs)
+
