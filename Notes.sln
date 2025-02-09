@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "extra", "extra", "{28B9025D-36DC-4F6C-9CD0-C8AD158BE9A7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Work", "Work", "{033CB48E-D89F-4D33-B275-48BF408A1BF3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "02-iteration-count", "extra\Work\02-iteration-count\02-iteration-count.csproj", "{2DF9C48E-555C-4AB6-9BA2-05018C452800}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2DF9C48E-555C-4AB6-9BA2-05018C452800}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DF9C48E-555C-4AB6-9BA2-05018C452800}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DF9C48E-555C-4AB6-9BA2-05018C452800}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DF9C48E-555C-4AB6-9BA2-05018C452800}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{033CB48E-D89F-4D33-B275-48BF408A1BF3} = {28B9025D-36DC-4F6C-9CD0-C8AD158BE9A7}
+		{2DF9C48E-555C-4AB6-9BA2-05018C452800} = {033CB48E-D89F-4D33-B275-48BF408A1BF3}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {32B5A867-D13B-4F01-BE2E-8521F429076C}
+	EndGlobalSection
+EndGlobal
