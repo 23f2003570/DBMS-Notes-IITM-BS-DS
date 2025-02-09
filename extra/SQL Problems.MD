@@ -26,3 +26,22 @@ What is the SQL QUERY to:
 
 
 
+
+### Nice question from end term
+
+```sql
+CREATE TABLE Products (
+    Product_SID CHAR(10) PRIMARY KEY,
+    Product_Name CHAR(60) UNIQUE,
+    Category CHAR(30) NOT NULL,
+    Price NUMERIC(8,2) CHECK (Price >= 0),
+    Stock INT CHECK (STOCK >= 0)
+)
+INSERT INTO Products VALUES ('P101', 'Laptop', 'Electronics', 1200.00, 50)
+INSERT INTO Products VALUES ('P102', 'Smartphone', 'Electronics', 800.00, 100)
+INSERT INTO Products VALUES ('P103', 'Desk Chair', 'Furniture', 150.00, 20)
+INSERT INTO Products VALUES ('P104', 'Lamp', 'Furniture', -20, 40);
+INSERT INTO Products VALUES ('P106', 'Desk', 'Furniture', 200, NULL);
+INSERT INTO Products VALUES ('P105', 'Laptop', 'Electronics', 1100.0, 30);
+
+```
